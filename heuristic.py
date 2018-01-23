@@ -13,6 +13,6 @@ def generateNeighbors(current):
     neighbors.append(Node(x, y+1))
     neighbors.append(Node(x, y-1))
     neighbors.append(Node(x+1, y))
-    neighbors.append(Node(x-1), y)
+    neighbors.append(Node(x-1, y))
     return neighbors
 
