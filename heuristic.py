@@ -1,4 +1,5 @@
 import math
+from main import Node
 
 def heuristic(nodeFrom, nodeTo):
     """Takes two nodes and computes the distance between them"""
