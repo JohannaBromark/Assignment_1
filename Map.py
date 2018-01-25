@@ -1,14 +1,18 @@
 import json
 import numpy as np
+import matplotlib as plt
 
 class Map():
 
     def __init__(self, file):
+        self.width = 10
+        self.height = 10
+        
         data = json.load(open(file))
 
         self.bounding_polygon = np.array(data["bounding_polygon"])
 
-        print(self.bounding_polygon)
+        #print(self.bounding_polygon)
         self.obstacles = []
         try:
             i = 0;
@@ -18,7 +22,7 @@ class Map():
         except KeyError:
             pass
 
-        print(self.obstacles[1])
+        #print(self.obstacles[1])
         self.pos_goal = data["pos_goal"]
         self.pos_start = data["pos_start"]
         self.vehicle_L = data["vehicle_L"]
@@ -30,3 +34,11 @@ class Map():
         self.vehicle_v_max = data["vehicle_v_max"]
         self.vel_goal = data["vel_goal"]
         self.vel_start = data["vel_start"]
+
+##        self.area = plt.path(self.bounding_polygon)
+##        self.obstacle_paths = []
+##        for obstacle in self.obstacles:
+##            self.obstacle_paths.append(plt.path(obstacle))
+
+    def isBlocked(self, point):
+        return False
