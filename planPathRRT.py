@@ -5,7 +5,7 @@ import Map
 
 V_MAX = 1.1
 DT = 0.1
-TOLERANCE = V_MAX * DT / 10
+TOLERANCE = V_MAX * DT # /10 #Dividing by ten = algorithm does not stop :(
 MAX_EDGE = V_MAX * DT
 FILEPATH = "P1.json"
 
@@ -25,11 +25,14 @@ def RRT(start, goal):
     newNode = start
     tree.append(start)
     while not (newNode.dist(goal) < TOLERANCE):
-        print(str(newNode.x) + ", " + str(newNode.y))
+        print("Distance+ "+str(newNode.dist(goal)))
+
+        print("newNode: "+str(newNode.x) + ", " + str(newNode.y))
 
         randomX = np.random.random() * mapp.width
         randomY = np.random.random() * mapp.height
         randNode = Node(randomX, randomY)
+        print("Random: "+str(randomX)+", "+str(randomY))
         
         if not mapp.isBlocked(randNode):
             nearestNode = nearestNeighbor(randNode, tree)
@@ -64,8 +67,10 @@ startNode = Node(1, 1)
 goalNode = Node(2, 3)
 
 currentNode = RRT(startNode, goalNode)
-pathx = np.array()
-pathy = np.array()
+
+pathx = np.array(0)
+pathy = np.array(0)
+
 while not currentNode.parent == None:
     print(str(currentNode.parent.x) + ", " + str(currentNode.parent.y))
     currentNode = currentNode.parent
@@ -73,3 +78,4 @@ while not currentNode.parent == None:
     np.append(pathy, currentNode.y)
 
 plt.plot(pathx, pathy)
+plt.show()
