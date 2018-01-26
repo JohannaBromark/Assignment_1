@@ -15,23 +15,32 @@ FILEPATH = "P1.json"
 
 class Node():
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, vel = [0,0]):
         self.x = x
         self.y = y
         self.name = str(self.x)+","+str(self.y)
         self.parent = None
         self.children = [] # only used to plot the graph
         self.distance = 0 # Needed only to keep track of the distance to the "competition" or something
+        # Need to keep track of the velocity, part of the state space
+        self.vel = vel
 
 
     def dist(self, otherNode):
-        return math.sqrt((otherNode.x - self.x) ** 2 + (otherNode.y - self.y) ** 2)
+        # Need to take into account the velocity as well
+        return math.sqrt((otherNode.x - self.x) ** 2 + (otherNode.y - self.y) ** 2 +
+                         (otherNode.velx-self.velx)**2 + (otherNode.vely - self.vely)**2)
 
-def RRT(start, goal, mapp):
+def findNewNodeDP(nearestNeghbor, randomNode):
+    # Måste använda acceleration för att hitta nästa nod
+    # ide: räkna ut vilken "vinkel" som nearestNeighbor kan ta sig till
+    return ""
+
+def RRT(start, goal):
 
     K = 10000
     tree = []
-    startVel = mapp.vel_start
+
     newNode = start
     tree.append(start)
     maxSpeed = 0
@@ -39,7 +48,8 @@ def RRT(start, goal, mapp):
 
 
     for k in range(K):
-        if k%5 == 0:
+        # Bias towards the goal, every fifth k
+        if k % 5 == 0:
             randomX = goal.x
             randomY = goal.y
         else:
@@ -52,10 +62,9 @@ def RRT(start, goal, mapp):
             nearestNode = nearestNeighbor(randNode, tree)
 
             ##MAX_EDGE kan nu inte använda max_vel, utan måste använda den faktiska hastigheten som beror på accelerationen.
-
-            ratio = MAX_EDGE / nearestNode.dist(randNode)
-            newNode = Node(nearestNode.x + ratio * (randomX - nearestNode.x),
-                           nearestNode.y + ratio * (randomY - nearestNode.y))
+            #ratio = MAX_EDGE / nearestNode.dist(randNode)
+            newNode = findNewNodeDP(nearestNode, randNode)# Node(nearestNode.x + ratio * (randomX - nearestNode.x),
+                                                          # nearestNode.y + ratio * (randomY - nearestNode.y))
 
             newNode.distance = nearestNode.distance + newNode.dist(nearestNode)
 
@@ -92,10 +101,12 @@ def nearestNeighbor(randNode, tree):
     return bestNode
 
 mapp = Map.Map(FILEPATH)
-startNode = Node(1, 2)
-goalNode = Node(10, 15)
+startVel = mapp.vel_start
+goalVel = mapp.vel_goal
+startNode = Node(1, 2, startVel[0], startVel[1])
+goalNode = Node(10, 15, goalVel[0], goalVel[1])
 
-tree = RRT(startNode, goalNode, mapp)
+tree = RRT(startNode, goalNode)
 
 path = []
 currentNode = tree[len(tree)-1]
