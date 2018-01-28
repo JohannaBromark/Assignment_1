@@ -118,6 +118,7 @@ def RRT(start, goal):
             return tree
 
     print("k: "+str(k))
+    # Returnerar tree, men om den inte hittat någon path blir det fel nu.
     return tree
 
 
