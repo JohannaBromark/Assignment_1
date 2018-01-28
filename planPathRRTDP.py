@@ -56,6 +56,9 @@ def findNewNodeDP(nearestNeghbor, randomNode):
 
     return Node(newx, newy, vel)
 
+def findNewNodeDD(nearestNeighbor, randonNode):
+
+
 def nearestNeighbor(randNode, tree):
     bestNode = tree[0]
     bestDistance = randNode.dist(tree[0])
