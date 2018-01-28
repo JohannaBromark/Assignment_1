@@ -29,16 +29,50 @@ class Node():
     def dist(self, otherNode):
         # Need to take into account the velocity as well
         return math.sqrt((otherNode.x - self.x) ** 2 + (otherNode.y - self.y) ** 2 +
-                         (otherNode.velx-self.velx)**2 + (otherNode.vely - self.vely)**2)
+                         (otherNode.vel[0]-self.vel[0])**2 + (otherNode.vel[1] - self.vel[1])**2)
 
 def findNewNodeDP(nearestNeghbor, randomNode):
-    # Måste använda acceleration för att hitta nästa nod
-    # ide: räkna ut vilken "vinkel" som nearestNeighbor kan ta sig till
-    return ""
+    """"Finds the acceleration needed and goes the the node"""
+    # acceleation, a vector with ax and ay
+    ax = 2*(randomNode.x - nearestNeghbor.x + nearestNeghbor.vel[0]* DT)/(DT**2)
+    ay = 2*(randomNode.y - nearestNeghbor.y + nearestNeghbor.vel[1]* DT)/(DT**2)
+    aTemp = np.array([ax, ay])
+    # Normalize acceleration so it is not larger than A_MAX
+    a = aTemp/np.linalg.norm(aTemp) * A_MAX
+
+    # calculates the velocity from the acceleration
+    velx = nearestNeghbor.vel[0] + a[0]*DT
+    vely = nearestNeghbor.vel[1] + a[1]*DT
+    velTemp = np.array([velx, vely])
+    #normalize it so it is not too fast
+    vel = velTemp/np.linalg.norm(velTemp) * V_MAX
+    #print(math.sqrt(vel[0]**2 + vel[1]**2))
+
+    newx = nearestNeghbor.x + nearestNeghbor.vel[0]*DT
+    newy = nearestNeghbor.y + nearestNeghbor.vel[1]*DT
+
+    #print(newx)
+    #print(newy)
+
+    return Node(newx, newy, vel)
+
+def nearestNeighbor(randNode, tree):
+    bestNode = tree[0]
+    bestDistance = randNode.dist(tree[0])
+
+    for node in tree:
+        distance = randNode.dist(node)
+        if distance < bestDistance:
+            bestDistance = distance
+            bestNode = node
+    #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
+    return bestNode
+
+
 
 def RRT(start, goal):
 
-    K = 10000
+    K = 1000
     tree = []
 
     newNode = start
@@ -63,9 +97,8 @@ def RRT(start, goal):
 
             ##MAX_EDGE kan nu inte använda max_vel, utan måste använda den faktiska hastigheten som beror på accelerationen.
             #ratio = MAX_EDGE / nearestNode.dist(randNode)
-            newNode = findNewNodeDP(nearestNode, randNode)# Node(nearestNode.x + ratio * (randomX - nearestNode.x),
-                                                          # nearestNode.y + ratio * (randomY - nearestNode.y))
 
+            newNode = findNewNodeDP(nearestNode, randNode)
             newNode.distance = nearestNode.distance + newNode.dist(nearestNode)
 
             # computes the speed, only for curiosity
@@ -85,26 +118,18 @@ def RRT(start, goal):
             return tree
 
     print("k: "+str(k))
-    return startNode
+    return tree
 
 
-def nearestNeighbor(randNode, tree):
-    bestNode = tree[0]
-    bestDistance = randNode.dist(tree[0])
 
-    for node in tree:
-        distance = randNode.dist(node)
-        if distance < bestDistance:
-            bestDistance = distance
-            bestNode = node
-    #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
-    return bestNode
 
 mapp = Map.Map(FILEPATH)
 startVel = mapp.vel_start
 goalVel = mapp.vel_goal
-startNode = Node(1, 2, startVel[0], startVel[1])
-goalNode = Node(10, 15, goalVel[0], goalVel[1])
+startNode = Node(1, 2, [startVel[0], startVel[1]])
+goalNode = Node(10, 15, [goalVel[0], goalVel[1]])
+
+#findNewNodeDP(startNode, goalNode)
 
 tree = RRT(startNode, goalNode)
 
