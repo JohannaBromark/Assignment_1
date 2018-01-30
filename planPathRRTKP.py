@@ -94,15 +94,41 @@ path = []
 currentNode = tree[len(tree)-1]
 while not currentNode == startNode:
     #print(str(currentNode.name))
-    path.append(currentNode.name)
+    path.append(currentNode)
     currentNode = currentNode.parent
 
-path.append(startNode.name)
+path.append(startNode)
 path.reverse()
+
+
+
+lastNode = path[len(path)-1]
+print("sista Noden ut: "+ lastNode.name)
+
+#Lägger till slutpunkten, om inte den går att nås, lägg till mellannoder
+while path[len(path)-1].dist(goalNode)> V_MAX * DT:
+    #Lägger till en punkt emellan
+    ratio = MAX_EDGE / lastNode.dist(goalNode)
+    lastNode = Node(lastNode.x + ratio * (goalNode.x - lastNode.x),
+                   lastNode.y + ratio * (goalNode.y - lastNode.y))
+    path.append(lastNode)
+else:
+    lastNode = goalNode
+    path.append(lastNode)
+
+for node in path:
+    print(node.name)
+
+"""
+* Måste sätta hastighet på noderna, så att sista har rätt hastighet
+"""
+
+
 
 #print(path)
 
 print("Distance: "+str(tree[len(tree)-1].distance))
+
 
 
 #Plots the tree
