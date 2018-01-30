@@ -79,8 +79,6 @@ def nearestNeighbor(randNode, tree):
     #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
     return bestNode
 
-
-
 def RRT(start, goal):
 
     K = 1000
@@ -94,7 +92,7 @@ def RRT(start, goal):
 
     for k in range(K):
         # Bias towards the goal, every fifth k
-        if k % 5 == 1:
+        if k % 5 == 0:
             randomX = goal.x
             randomY = goal.y
         else:
@@ -153,35 +151,45 @@ def timeToAdjustVel(goalVel, vel):
     return numDT
 
 def localSearch(nearestNode, goal):
+    """Funkar inte eftersom det blir svårt att koppla ihop noderna utan att accelerationen eller hsstigheten blir för stor"""
     currentGoal = Node(goal.x, goal.y, np.multiply(goal.vel, (-1)))
     currentNear = Node(nearestNode.x, nearestNode.y, nearestNode.vel)
 
-    pathFromGoal = findLocalPath(currentGoal, currentNear, 110)
-    pathFromNode = findLocalPath(currentNear, currentGoal, 110)
+    firstPathFromGoal = findLocalPath(currentGoal, currentNear, 1)
+    firstPathFromNode = findLocalPath(currentNear, currentGoal, 1)
 
-    newGoal = pathFromGoal[len(pathFromGoal)-1]
-    newNode = pathFromNode[len(pathFromNode)-1]
+    newGoal = firstPathFromGoal[len(firstPathFromGoal)-1]
+    newNode = firstPathFromNode[len(firstPathFromNode)-1]
 
-    lastPath = findLocalPath(newNode, newGoal, 1)
+    #secondPathFromGoal = findLocalPath(newGoal, newNode, 20)
+    #secondPathFromNode = findLocalPath(newNode, newGoal, 20)
+
+    #newGoal = secondPathFromGoal[len(firstPathFromGoal)-1]
+    #newNode = secondPathFromNode[len(secondPathFromNode)-1]
+
+    lastPath = findLocalPath(firstPathFromNode[len(firstPathFromNode)//4], firstPathFromGoal[len(firstPathFromGoal)//4], 1)
 
     middleNode = lastPath[len(lastPath)-1]
-    middleGoal = pathFromGoal[len(pathFromGoal)-1]
+    middleGoal = firstPathFromGoal[len(firstPathFromGoal)-1]
+
+    print(middleNode.name)
+    print(middleGoal.name)
 
     #Måste kolla så att det är godkänd hastighet och acceleration mellan middleNode och middleGoal
 
     finalPath = []
-    for node in pathFromNode:
+    for node in firstPathFromNode:
         finalPath.append(node)
     for node in lastPath:
         finalPath.append(node)
-    i = len(pathFromGoal)-1
+    i = len(firstPathFromGoal)-1
     while i >= 0:
-        finalPath.append(pathFromGoal[i])
+        finalPath.append(firstPathFromGoal[i])
         i-=1
 
     # Different returns depending on what you want
     #return finalPath
-    return pathFromGoal, pathFromNode, lastPath
+    return firstPathFromGoal, firstPathFromNode, lastPath
 
 def findLocalPath(node, goal, factor):
     pathFromGoal = []
@@ -203,6 +211,7 @@ def findLocalPath(node, goal, factor):
 
         node = Node(prevNode.x + velFromNode[0] * DT, prevNode.y + velFromNode[1] * DT, velFromNode)
 
+
         prevNode.children.append(node)
 
         # Test för accelerationen och hastigheten
@@ -217,6 +226,54 @@ def findLocalPath(node, goal, factor):
     print(maxVel)
     print(maxAcc)
     return pathFromGoal
+
+
+
+def goalSearch(start, goal):
+    startPath = []
+    goalPath = []
+
+    currentNode = start
+    currentGoal = Node(goal.x, goal.y, np.multiply(goal.vel, (-1)))
+
+    while currentNode.x != currentGoal.x or currentNode.y != currentGoal.y:
+        print("Current: "+str(currentNode.name))
+        print("Goal: " + currentGoal.name)
+        startPath.append(currentNode)
+        goalPath.append(currentGoal)
+        prevNode = currentNode
+        prevGoal = currentGoal
+        currentNode = findNextNode(currentNode, currentGoal)
+        currentGoal = findNextNode(currentGoal, currentNode)
+        prevNode.children.append(currentNode)
+        prevGoal.children.append(currentGoal)
+
+    startPath.append(currentNode)
+    goalPath.append(goalNode)
+
+    for node in startPath:
+        print(node.name)
+
+    return startPath, goalPath
+
+
+def findNextNode(nodeFrom, nodeTo):
+    dist = nodeFrom.dist(nodeTo)
+    acc = (nodeTo.coord - nodeFrom.coord - np.multiply(nodeFrom.vel, DT))/DT**2
+
+    if np.linalg.norm(acc) > A_MAX:
+        acc = acc/np.linalg.norm(acc) * A_MAX
+
+    velocity = nodeFrom.vel + np.multiply(acc, DT)
+    print("velocity: "+str(np.linalg.norm(velocity)))
+
+    if np.linalg.norm(velocity) > V_MAX:
+        velocity = velocity/np.linalg.norm(velocity) * V_MAX
+
+    newNode = Node(nodeFrom.x + velocity[0] * DT, nodeFrom.y + velocity[1] * DT, velocity)
+    
+    return newNode
+
 
 
 mapp = Map.Map(FILEPATH)
@@ -237,9 +294,12 @@ goalNode = Node(10, 15, [goalVel[0], goalVel[1]])
 #print(timeToAdjustVel(goalVel, (goalVel/np.linalg.norm(goalVel) * V_MAX)))
 
 
+treeNode, treeGoal = goalSearch(startNode, goalNode)
+
 
 #tree = RRT(startNode, goalNode)
-treeGoal, treeNode, treeMiddle = localSearch(startNode, goalNode)
+#treeGoal, treeNode = localSearch(startNode, goalNode)
+#treeGoal, treeNode, treeMiddle = localSearch(startNode, goalNode)
 #tree = localSearch(startNode, goalNode)
 
 #
@@ -266,18 +326,18 @@ treeGoal, treeNode, treeMiddle = localSearch(startNode, goalNode)
 for i in range(len(treeGoal)-1):
     node = treeGoal[i]
     for child in node.children:
-        plt.plot([node.x, child.x], [node.y, child.y])
-
+        plt.plot([node.x, child.x], [node.y, child.y], c = "r")
+#
 for i in range(len(treeNode)-1):
     node = treeNode[i]
     for child in node.children:
-        plt.plot([node.x, child.x], [node.y, child.y])
-
-for i in range(len(treeMiddle)-1):
-    node = treeMiddle[i]
-    for child in node.children:
-        plt.plot([node.x, child.x], [node.y, child.y])
-
+        plt.plot([node.x, child.x], [node.y, child.y], c = "b")
+#
+#for i in range(len(treeMiddle)-1):
+#    node = treeMiddle[i]
+#    for child in node.children:
+#        plt.plot([node.x, child.x], [node.y, child.y])
+#
 plt.scatter(startNode.x, startNode.y, c = "g")
 plt.scatter(goalNode.x, goalNode.y, c = "r")
 
