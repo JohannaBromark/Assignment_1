@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import math
 import Map
 
+from scipy.interpolate import CubicSpline
+
 # Code for dynamic point
 
 V_MAX = 1.1
@@ -14,7 +16,7 @@ FILEPATH = "P1.json"
 
 class Node():
 
-    def __init__(self, x, y, vel = [0,0]):
+    def __init__(self, x, y, vel = np.zeros((1,2))):
         self.x = x
         self.y = y
         self.coord = np.array([self.x, self.y])
@@ -231,10 +233,11 @@ def findLocalPath(node, goal, factor):
     return pathFromGoal
 
 
-def extendPoint(point):
-    vel = np.multiply(point.vel, (-1))
-    newPoint = Node(point.x + 3* vel[0]* DT, point.y + 3*vel[1] * DT, point.vel)
-    return newPoint
+def extendPoints(startPoint, endPoint):
+    vel = np.multiply(endPoint.vel, (-1))
+    newPointGoal = Node(endPoint.x + 3* vel[0]* DT, endPoint.y + 3*vel[1] * DT, endPoint.vel)
+    newPointStart = Node(startPoint.x + startPoint.vel[0]*DT, startPoint.y + startPoint.vel[1]*DT, startPoint.vel)
+    return newPointStart, newPointGoal
 
 def lastBit(point, goal):
     path = []
@@ -275,6 +278,45 @@ def followCurve(startNode, curve):
 
     return thePath
 
+def followCurveMod(startNode, curve):
+    thePath = []
+    thePath.append(startNode)
+    currentNode = startNode
+
+    for step in range(len(curve)):
+        wantVel = np.multiply(curve[step].vel, (-1))
+        print("jämförnod")
+        print(curve[step].name)
+        print("nuvarande nod")
+        print(currentNode.name)
+        velToPos = np.array([(curve[step].x - currentNode.x)/DT, (curve[step].y - currentNode.y )/DT])
+
+        print("målhastighet")
+        print(wantVel)
+        print("Hastighet till punkt")
+        print(velToPos)
+
+        totVel = wantVel + velToPos * 0.1
+
+        acc = (totVel - currentNode.vel) / DT
+
+        if np.linalg.norm(acc) > A_MAX:
+            acc /= np.linalg.norm(acc)
+            totVel = currentNode.vel + np.multiply(acc, DT)
+
+        if np.linalg.norm(totVel) > V_MAX:
+            totVel /= np.linalg.norm(totVel)
+
+        if np.linalg.norm((totVel - currentNode.vel)/DT) > A_MAX:
+            print("ACCELERATIONEN")
+
+
+        nextNode = Node(currentNode.x + totVel[0] * DT, currentNode.y + totVel[1] * DT, totVel)
+        currentNode.children.append(nextNode)
+        currentNode = nextNode
+        thePath.append(currentNode)
+
+    return thePath
 
 def goalSearch(start, goal):
     startPath = []
@@ -294,30 +336,44 @@ def goalSearch(start, goal):
     #    prevNode.children.append(currentNode)
     #    prevGoal.children.append(currentGoal)
 
-    while currentNode.dist(currentGoal) > TOLERANCE*20: #currentNode.x != currentGoal.x or currentNode.y != currentGoal.y:
+    while currentNode.dist(currentGoal) > TOLERANCE*30: #currentNode.x != currentGoal.x or currentNode.y != currentGoal.y:
     #    #print("Current: "+str(currentNode.name))
     #    #print("Goal: " + currentGoal.name)
-        startPath.append(currentNode)
+        #startPath.append(currentNode)
         goalPath.append(currentGoal)
-        prevNode = currentNode
+        #revNode = currentNode
         prevGoal = currentGoal
-        currentNode = findNextNode(currentNode, currentGoal)
+        #currentNode = findNextNode(currentNode, currentGoal)
         currentGoal = findNextNode(currentGoal, currentNode)
-        prevNode.children.append(currentNode)
+        #prevNode.children.append(currentNode)
         prevGoal.children.append(currentGoal)
+
+
+
 
     startPath.append(currentNode)
     goalPath.append(currentGoal)
+    for i in range(7):
+        prevGoal = currentGoal
+        currentGoal = Node(currentGoal.x + currentGoal.vel[0]*DT, currentGoal.y + currentGoal.vel[1] * DT, currentGoal.vel)
+        prevGoal.children.append(currentGoal)
+        goalPath.append(currentGoal)
 
     while currentNode.dist(currentGoal) > TOLERANCE:
+        print("Avstånd")
+        print(currentNode.dist(currentGoal))
         prevNode = currentNode
+        print("Nod innan")
+        print(currentNode.name)
         currentNode = findNextNode(currentNode, currentGoal)
+        print("node efter")
+        print(currentNode.name)
         prevNode.children.append(currentNode)
         startPath.append(currentNode)
 
     goalPath.reverse()
 
-    lastPath = followCurve(startPath[len(startPath)-1], goalPath)
+    lastPath = followCurveMod(startPath[len(startPath)-1], goalPath)
 
 
     distance = lastPath[len(lastPath)-1].dist(goal)
@@ -340,6 +396,11 @@ def goalSearch(start, goal):
 
     for node in startPath:
         print(node.name)
+
+    print("Sista hastigheten")
+    print(lastPath[len(lastPath)-1].vel)
+    print("målhastighet")
+    print(goalNode.vel)
 
     return startPath, lastPath, goalPath
 
@@ -371,6 +432,38 @@ def findNextNode(nodeFrom, nodeTo):
 
     return newNode
 
+def findNextNodeMod(nodeFrom, nodeTo):
+    #print("FindNextNodeMOD")
+    wantVel = np.multiply(nodeTo.vel, (-1))
+    #print("jämförnod")
+    #print(nodeTo.name)
+    #print("nuvarande nod")
+    #print(nodeFrom.name)
+    velToPos = np.array([(nodeTo.x - nodeFrom.x) / DT, (nodeTo.y - nodeFrom.y) / DT])
+    """
+    print("målhastighet")
+    print(wantVel)
+    print("Hastighet till punkt")
+    print(velToPos)
+    """
+    totVel = wantVel + velToPos * 0.5
+    print("hastighet")
+    print(np.linalg.norm(totVel))
+
+    acc = (totVel - nodeFrom.vel) / DT
+
+    if np.linalg.norm(acc) > A_MAX:
+        acc /= np.linalg.norm(acc)
+        totVel = nodeFrom.vel + np.multiply(acc, DT)
+
+    if np.linalg.norm(totVel) > V_MAX:
+        totVel /= np.linalg.norm(totVel)
+
+    if np.linalg.norm((totVel - nodeFrom.vel) / DT) > A_MAX:
+        print("ACCELERATIONEN")
+
+    nextNode = Node(nodeFrom.x + totVel[0] * DT, nodeFrom.y + totVel[1] * DT, totVel)
+    return nextNode
 
 
 mapp = Map.Map(FILEPATH)
@@ -381,8 +474,19 @@ goalVel = mapp.vel_goal
 #goalNode = Node(10, 15, [goalVel[0], goalVel[1]])
 
 
-startNode = Node(1, 2, [0, 1.1])
-goalNode = Node(1, 5, [-0.5, 0.5])
+startNode = Node(1, 2, [0.1, 0.9])
+goalNode = Node(3, 5, [-0.1, 0.5])
+
+newStart, newGoal = extendPoints(startNode, goalNode)
+#x = [startNode.x, newStart.x, goalNode.x, newGoal.x]
+#y = [startNode.y, newStart.y, goalNode.y, newGoal.y]
+
+#for node in x:
+#    print(node)
+
+#pointsX = np.arange(startNode.x, goalNode.x, np.linalg.norm(goalNode.vel)*DT)
+
+#isThisPath = CubicSpline(x, y)
 
 #startNode = Node(1, 2, [-0.7, -0.7])
 #goalNode = Node(10, 15, [-0.5, 0.5])
@@ -399,10 +503,10 @@ goalNode = Node(1, 5, [-0.5, 0.5])
 treeNode, treeGoal, treeMiddle = goalSearch(startNode, goalNode)
 
 findNextNode(startNode, goalNode)
-testPoint = extendPoint(goalNode)
-print(testPoint.vel)
-print(goalNode.vel)
-path = lastBit(testPoint, goalNode)
+#testPoint = extendPoints(goalNode)
+#print(testPoint.vel)
+#print(goalNode.vel)
+#path = lastBit(testPoint, goalNode)
 
 
 #tree = RRT(startNode, goalNode)
@@ -447,6 +551,9 @@ for i in range(len(treeMiddle)-1):
         plt.plot([node.x, child.x], [node.y, child.y], c = "g")
 #
 #print(testPoint.name)
+#plt.plot(x, y, "o")
+#plt.plot(pointsX, isThisPath(pointsX))
+
 plt.scatter(startNode.x, startNode.y, c = "g")
 plt.scatter(goalNode.x, goalNode.y, c = "r")
 #plt.scatter(testPoint.x, testPoint.y, c= "b")
