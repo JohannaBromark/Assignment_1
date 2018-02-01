@@ -21,8 +21,8 @@ class Map():
         self.boundingHitBox = [findMaxMin(self.bounding_polygon)]
 
         # width = maxX - minX, height = maxY - minY
-        self.width = 70 #(self.boundingHitBox[0][1] - self.boundingHitBox[0][0]) * 1.5
-        self.height = 70 #(self.boundingHitBox[0][2] - self.boundingHitBox[0][3]) * 1.5
+        self.width = 60 #(self.boundingHitBox[0][1] - self.boundingHitBox[0][0]) * 1.5
+        self.height = 60 #(self.boundingHitBox[0][2] - self.boundingHitBox[0][3]) * 1.5
 
         self.goal = data["pos_goal"]
         self.start = data["pos_start"]

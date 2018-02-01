@@ -63,13 +63,19 @@ def rayCastCheck(node, outsideNode, obstacle):
     # Control so that it is only the corners that the ray potentially intersect that later gets checked
     posIntersectCorners = []
     for i in range(len(obstacle)):
-        orientation1 = getOrientation(node.XY, outsideNode, obstacle[i])
-        orientation2 = getOrientation(node.XY, outsideNode, obstacle[(i+1) % len(obstacle)])
-        orientation3 = getOrientation(obstacle[i], obstacle[(i+1)%len(obstacle)], node.XY)
-        orientation4 = getOrientation(obstacle[i], obstacle[(i+1)%len(obstacle)], outsideNode)
-        if orientation1 != orientation2 and orientation3 != orientation4:
+        if isLinesCrossing(node.XY, outsideNode, obstacle[i], obstacle[(i+1)%len(obstacle)]):
             posIntersectCorners.append(i)
             numIntersect += 1
+
+
+        #Old code
+        #orientation1 = getOrientation(node.XY, outsideNode, obstacle[i])
+        #orientation2 = getOrientation(node.XY, outsideNode, obstacle[(i+1) % len(obstacle)])
+        #orientation3 = getOrientation(obstacle[i], obstacle[(i+1)%len(obstacle)], node.XY)
+        #orientation4 = getOrientation(obstacle[i], obstacle[(i+1)%len(obstacle)], outsideNode)
+        #if orientation1 != orientation2 and orientation3 != orientation4:
+        #    posIntersectCorners.append(i)
+        #    numIntersect += 1
 
 
     for i in posIntersectCorners:
@@ -78,6 +84,15 @@ def rayCastCheck(node, outsideNode, obstacle):
             numIntersect -=1
 
     return numIntersect%2 != 0
+
+
+def isLinesCrossing(node1, node2, node3, node4):
+    """If the orientations is not the same, the lines are crossing"""
+    orientation1 = getOrientation(node1, node2, node3)
+    orientation2 = getOrientation(node1, node2, node4)
+    orientation3 = getOrientation(node3, node4, node1)
+    orientation4 = getOrientation(node3, node4, node2)
+    return orientation1 != orientation2 and orientation3 != orientation4
 
 
 
@@ -105,6 +120,15 @@ def getOrientation(node1, node2, node3):
     if value == 0:
         return 0
     return value / abs(value)
+
+def isObstacleBetween(node1, node2, obstacles):
+    for obstacle in obstacles:
+        for i in range(len(obstacle)):
+            if isLinesCrossing(node1.XY, node2.XY, obstacle[i], obstacle[(i+1)%len(obstacle)]):
+                return True
+
+    return False
+
 
 
 
