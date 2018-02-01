@@ -3,6 +3,7 @@ import math
 from Map2 import Map
 from plotFunctions import *
 
+
 class Node():
 
     def __init__(self, x, y, vel=np.zeros((1, 2))):
@@ -23,9 +24,7 @@ class Node():
 
 def RRT(start, goal, theMap):
 
-
-
-    K = 10000
+    K = 15000
     tree = []
     tree.append(start)
     newNode = start
@@ -36,13 +35,15 @@ def RRT(start, goal, theMap):
     errorMargin = theMap.dt * theMap.v_max
 
     for k in range(K):
-        if k % 5 == 0:
+        #randomX = goal.x
+        #randomY = goal.y
+        if k % 3 == 0:
             randomX = goal.x
             randomY = goal.y
         else:
             randomX = np.random.random() * theMap.width
             randomY = np.random.random() * theMap.height
-
+        #
         randNode = Node(randomX, randomY)
 
         while not theMap.isOK(randNode):
@@ -52,11 +53,7 @@ def RRT(start, goal, theMap):
 
         nearestNode = nearestNeighbor(randNode, tree)
 
-        #Have different function for different motion models
-
-        #newNode = nextStateKP(nearestNode, randNode, theMap.v_max, theMap.dt)
         newNode = nextStateDP(nearestNode, randNode, theMap.v_max, theMap.a_max, theMap.dt)
-
 
         if theMap.isOK(newNode):
             newNode.distance = nearestNode.distance + newNode.dist(nearestNode)
@@ -69,6 +66,10 @@ def RRT(start, goal, theMap):
             newNode.parent = nearestNode
             nearestNode.children.append(newNode)
             tree.append(newNode)
+
+        if newNode.dist(goal):
+            finalPath = finalSample(newNode, goal)
+
 
         if newNode.dist(goal) <= errorMargin:
             print("breakar")
@@ -93,14 +94,6 @@ def nearestNeighbor(randNode, tree):
             bestNode = node
     #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
     return bestNode
-
-
-def nextStateKP(nearestNode, randomNode, vMax, dt):
-    vel = (randomNode.XY-nearestNode.XY)/dt
-    velNorm = np.linalg.norm(vel)
-    if velNorm > vMax:
-        vel /= velNorm
-    return Node(nearestNode.x + vel[0] * dt, nearestNode.y + vel[1] * dt, vel)
 
 def nextStateDP(nearestNode, randomNode, vMax, aMax, dt):
     """"Finds the acceleration needed and goes the the node"""
@@ -128,6 +121,7 @@ def nextStateDP(nearestNode, randomNode, vMax, aMax, dt):
     newy = nearestNode.y + vel[1] * dt
 
     return Node(newx, newy, vel)
+
 
 
 def main(filePath):
