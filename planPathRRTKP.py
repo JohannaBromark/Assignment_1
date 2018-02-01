@@ -9,13 +9,14 @@ V_MAX = 1.1
 DT = 0.1
 TOLERANCE = V_MAX * DT #/ 10
 MAX_EDGE = V_MAX * DT
-FILEPATH = "P1.json"
+FILEPATH = "P2.json"
 
 class Node():
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.XY = [self.x, self.y]
         self.name = str(self.x)+","+str(self.y)
         self.parent = None
         self.children = [] # only used to plot the graph
@@ -43,7 +44,7 @@ def RRT(start, goal):
 
         randNode = Node(randomX, randomY)
 
-        if not mapp.isBlocked(randNode):
+        if mapp.isOK(randNode):
             nearestNode = nearestNeighbor(randNode, tree)
 
             ratio = MAX_EDGE / nearestNode.dist(randNode)
@@ -141,3 +142,7 @@ plt.scatter(startNode.x, startNode.y, c = "g")
 plt.scatter(goalNode.x, goalNode.y, c = "r")
 
 plt.show()
+
+
+def plotObstacles(obstacles):
+    

@@ -1,82 +1,42 @@
-# Hitta Xmin, Xmax, Ymin, Ymax, för alla hinder. Om en punkt har en koordinat större än max eller mindre en min, är den inte i punkten.
-# lägg till hitbox till hindret, räkna ut det när hindrena läses in eller nåt
-# Ray casting for andra punkter
+from planPathRRTDP import Node
+from Map import *
+from obstacleCheck import *
 
-def makeBox(obstacles):
-    maxMinBoxes = []
-    for obstacle in obstacles:
-        maxMin = findMaxMin(obstacle)
-        maxMinBoxes.append(maxMin)
-    return maxMinBoxes
+def main():
+    nodeGreen = Node(3, 5)
+    nodeRed = Node(6, 3)
+    nodeFalse = Node(4.8, 4)
+    nodeOut = Node(-10, -10)
+    nodeObs = Node(20, 12)
+    nodeBetw = Node(4.9, 7.8)
 
-def findMaxMin(obstacle):
-    Xmin = float("inf")
-    Ymin = float("inf")
-    Xmax = -float("inf")
-    Ymax = -float("inf")
+    map = Map("P1.json")
 
-    for corner in obstacle:
-        if corner[0] < Xmin:
-            Xmin = corner[0]
-        if corner[0] > Xmax:
-            Xmax = corner[0]
-        if corner[1] < Ymin:
-            Ymin = corner[1]
-        if corner[1] > Ymax:
-            Ymax = corner[1]
-    return [Xmin, Xmax, Ymin, Ymax]
-
-def checkIfHitBox(point, hitBoxes):
-    posObstacles = []
-    index = 0
-    for box in hitBoxes:
-        if point.x > box[0] and point.x <box[1] and point.y > box[2] and point.y < box[3]:
-            posObstacles.append(index)
-        index += 1
-    return posObstacles
+    obstacles = [[[5, 3], [7, 5], [7, 8], [4, 7]], [[4,8], [5,8], [5,9], [4,9]]]
+    hitboxes = makeBoxes(obstacles)
 
 
-def nodeOK(node, obstacles):
-    posObsacles = checkIfHitBox(node, obstacles)
-    if len(posObsacles) > 0:
-        # There is a possibility that the point is within an obstacle
-        for obstacle in posObsacles:
-            rayCastCheck(node, obstacle)
+    #print("Grön")
+    #print(len(checkIfHitBox(nodeGreen, hitboxes)))
+
+    #rint("Röd")
+    #print(len(checkIfHitBox(nodeRed, hitboxes)))
+
+    #print(len(checkIfHitBox(nodeFalse, hitboxes)))
+
+    #print(isBlocked(nodeRed, obstacles, hitboxes))
+
+    #print(isBlocked(nodeFalse, obstacles, hitboxes))
+
+    #print(map.isOK(nodeFalse))
+    print(map.isOK(nodeOut))
+
+    print(map.isOK(nodeObs))
+
+    #print(isBlocked(nodeBetw, obstacles, hitboxes))
+
+    #print(isCornerOnLine([21, 11], [19, 13], [20, 12]))
 
 
-def rayCastCheck(node, obstacle):
-    """"Obstacle walls 1-2, 2-3, 3-4, 4-1. Takes a point outside of the box
-        Two lines intersect if (p1, q1, p2) and (p1, q1, q2) have different orientation AND
-        (p2, q2, p1) and (p2, q2, q1) have different orientation. There is a special case not implemented yet.
-        p1 = node to test, q1 = point outside box. p2 = corner in obstacle, q2 = connected corner
-    """
-    numIntersect = 0
-    #Take point from outside of the box, now it is a line between the node and that point
-    # x = minX -1, y = maxY, outside of the box
-    outsideNode = [hitBox[0] - 1, hitBox[3]]
-
-    for i in range(len(obstacle)):
-        orientation1 = getOrientation(node.XY, outsideNode, obstacle[i])
-        orientation2 = getOrientation(node.XY, outsideNode, obstacle[(i+1) % len(obstacle)])
-        orientation3 = getOrientation(obstacle[i], obstacle[(i+1)%len(obstacle)], node.XY)
-        orientation4 = getOrientation(obstacle[i], obstacle[(i+1)%len(obstacle)], outsideNode)
-        if orientation1 != orientation2 and orientation3 != orientation4:
-            numIntersect += 1
-
-    if numIntersect%2 != 0:
-        return False
-    else:
-        return True
-
-
-def getOrientation(node1, node2, node3):
-    """"Computes the orientation of the points. 0 = colinear, 1 = Clockwise, -1 = counterclockwise"""
-    value = (node2[1] - node1[1]) * (node3[0] - node2[0]) - (node2[0] - node1[0]) * (node3[1] - node2[1])
-    if value == 0:
-        return 0
-    return value / abs(value)
-
-
-
-
-
+if __name__ == "__main__":
+    main()

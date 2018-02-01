@@ -19,7 +19,7 @@ class Node():
     def __init__(self, x, y, vel = np.zeros((1,2))):
         self.x = x
         self.y = y
-        self.coord = np.array([self.x, self.y])
+        self.XY = np.array([self.x, self.y])
         self.name = str(self.x)+","+str(self.y)
         self.parent = None
         self.children = [] # only used to plot the graph
@@ -465,100 +465,103 @@ def findNextNodeMod(nodeFrom, nodeTo):
     nextNode = Node(nodeFrom.x + totVel[0] * DT, nodeFrom.y + totVel[1] * DT, totVel)
     return nextNode
 
-
-mapp = Map.Map(FILEPATH)
-startVel = mapp.vel_start
-goalVel = mapp.vel_goal
+def main():
+    mapp = Map.Map(FILEPATH)
+    startVel = mapp.vel_start
+    goalVel = mapp.vel_goal
 
 #startNode = Node(1, 2, [startVel[0], startVel[1]])
-#goalNode = Node(10, 15, [goalVel[0], goalVel[1]])
+    #goalNode = Node(10, 15, [goalVel[0], goalVel[1]])
 
 
-startNode = Node(1, 2, [0.1, 0.9])
-goalNode = Node(3, 5, [-0.1, 0.5])
+    startNode = Node(1, 2, [0.1, 0.9])
+    goalNode = Node(3, 5, [-0.1, 0.5])
 
-newStart, newGoal = extendPoints(startNode, goalNode)
-#x = [startNode.x, newStart.x, goalNode.x, newGoal.x]
-#y = [startNode.y, newStart.y, goalNode.y, newGoal.y]
+    newStart, newGoal = extendPoints(startNode, goalNode)
+    #x = [startNode.x, newStart.x, goalNode.x, newGoal.x]
+    #y = [startNode.y, newStart.y, goalNode.y, newGoal.y]
 
-#for node in x:
-#    print(node)
+    #for node in x:
+    #    print(node)
 
-#pointsX = np.arange(startNode.x, goalNode.x, np.linalg.norm(goalNode.vel)*DT)
+    #pointsX = np.arange(startNode.x, goalNode.x, np.linalg.norm(goalNode.vel)*DT)
 
-#isThisPath = CubicSpline(x, y)
+    #isThisPath = CubicSpline(x, y)
 
-#startNode = Node(1, 2, [-0.7, -0.7])
-#goalNode = Node(10, 15, [-0.5, 0.5])
-
-
-#findNewNodeDP(startNode, goalNode)
-
-#extendPoint(startNode, goalNode)
-
-#print(timeToAdjustVel(goalVel, np.multiply(goalVel, (-1))) * V_MAX / 2)
-#print(timeToAdjustVel(goalVel, (goalVel/np.linalg.norm(goalVel) * V_MAX)))
+    #startNode = Node(1, 2, [-0.7, -0.7])
+    #goalNode = Node(10, 15, [-0.5, 0.5])
 
 
-treeNode, treeGoal, treeMiddle = goalSearch(startNode, goalNode)
+    #findNewNodeDP(startNode, goalNode)
 
-findNextNode(startNode, goalNode)
-#testPoint = extendPoints(goalNode)
-#print(testPoint.vel)
-#print(goalNode.vel)
-#path = lastBit(testPoint, goalNode)
+    #extendPoint(startNode, goalNode)
 
-
-#tree = RRT(startNode, goalNode)
-#treeGoal, treeNode = localSearch(startNode, goalNode)
-#treeGoal, treeNode, treeMiddle = localSearch(startNode, goalNode)
-#tree = localSearch(startNode, goalNode)
-
-#
-#path = []
-#currentNode = tree[len(tree)-1]
-#while not currentNode == startNode:
-#    #print(str(currentNode.name))
-#    path.append(currentNode.name)
-#    currentNode = currentNode.parent
-#
-#path.append(startNode.name)
-#path.reverse()
-#
-#print(path)
-
-#print("Distance: "+str(tree[len(tree)-1].distance))
-
-#Plots the tree
-#for i in range(len(tree)-1):
-#    node = tree[i]
-#    for child in node.children:
-#        plt.plot([node.x, child.x], [node.y, child.y])
-#
-for i in range(len(treeGoal)-1):
-    node = treeGoal[i]
-    for child in node.children:
-        plt.plot([node.x, child.x], [node.y, child.y], c = "r")
-#
-for i in range(len(treeNode)-1):
-    node = treeNode[i]
-    for child in node.children:
-        plt.plot([node.x, child.x], [node.y, child.y], c = "b")
-#
-for i in range(len(treeMiddle)-1):
-    node = treeMiddle[i]
-    for child in node.children:
-        plt.plot([node.x, child.x], [node.y, child.y], c = "g")
-#
-#print(testPoint.name)
-#plt.plot(x, y, "o")
-#plt.plot(pointsX, isThisPath(pointsX))
-
-plt.scatter(startNode.x, startNode.y, c = "g")
-plt.scatter(goalNode.x, goalNode.y, c = "r")
-#plt.scatter(testPoint.x, testPoint.y, c= "b")
-#for node in path:
-#    plt.scatter(node.x, node.y, c= "c")
+    #print(timeToAdjustVel(goalVel, np.multiply(goalVel, (-1))) * V_MAX / 2)
+    #print(timeToAdjustVel(goalVel, (goalVel/np.linalg.norm(goalVel) * V_MAX)))
 
 
-plt.show()
+    treeNode, treeGoal, treeMiddle = goalSearch(startNode, goalNode)
+
+    findNextNode(startNode, goalNode)
+    #testPoint = extendPoints(goalNode)
+    #print(testPoint.vel)
+    #print(goalNode.vel)
+    #path = lastBit(testPoint, goalNode)
+
+
+    #tree = RRT(startNode, goalNode)
+    #treeGoal, treeNode = localSearch(startNode, goalNode)
+    #treeGoal, treeNode, treeMiddle = localSearch(startNode, goalNode)
+    #tree = localSearch(startNode, goalNode)
+
+    #
+    #path = []
+    #currentNode = tree[len(tree)-1]
+    #while not currentNode == startNode:
+    #    #print(str(currentNode.name))
+    #    path.append(currentNode.name)
+    #    currentNode = currentNode.parent
+    #
+    #path.append(startNode.name)
+    #path.reverse()
+    #
+    #print(path)
+
+    #print("Distance: "+str(tree[len(tree)-1].distance))
+
+    #Plots the tree
+    #for i in range(len(tree)-1):
+    #    node = tree[i]
+    #    for child in node.children:
+    #        plt.plot([node.x, child.x], [node.y, child.y])
+    #
+    for i in range(len(treeGoal)-1):
+        node = treeGoal[i]
+        for child in node.children:
+            plt.plot([node.x, child.x], [node.y, child.y], c = "r")
+    #
+    for i in range(len(treeNode)-1):
+        node = treeNode[i]
+        for child in node.children:
+            plt.plot([node.x, child.x], [node.y, child.y], c = "b")
+    #
+    for i in range(len(treeMiddle)-1):
+        node = treeMiddle[i]
+        for child in node.children:
+            plt.plot([node.x, child.x], [node.y, child.y], c = "g")
+    #
+    #print(testPoint.name)
+    #plt.plot(x, y, "o")
+    #plt.plot(pointsX, isThisPath(pointsX))
+
+    plt.scatter(startNode.x, startNode.y, c = "g")
+    plt.scatter(goalNode.x, goalNode.y, c = "r")
+    #plt.scatter(testPoint.x, testPoint.y, c= "b")
+    #for node in path:
+    #    plt.scatter(node.x, node.y, c= "c")
+
+
+    plt.show()
+
+if __name__ == "__main__":
+    main()

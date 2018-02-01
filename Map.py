@@ -1,6 +1,6 @@
 import json
 import numpy as np
-import matplotlib as plt
+from obstacleCheck import *
 
 class Map():
 
@@ -17,10 +17,14 @@ class Map():
         try:
             i = 0;
             while(1):
-                self.obstacles.append(np.asmatrix((data["obstacle_"+str(i+1)])))
+                self.obstacles.append(np.array((data["obstacle_"+str(i+1)])))
                 i+=1
         except KeyError:
             pass
+
+        #Hitboxes for obstacles for an easy test if a node is outside an obstacle and inside the bounding_polygon
+        self.hitBoxes = makeBoxes(self.obstacles)
+        self.boundingHitBox = [findMaxMin(self.bounding_polygon)]
 
         #print(self.obstacles[1])
         self.pos_goal = data["pos_goal"]
@@ -35,10 +39,13 @@ class Map():
         self.vel_goal = data["vel_goal"]
         self.vel_start = data["vel_start"]
 
-##        self.area = plt.path(self.bounding_polygon)
-##        self.obstacle_paths = []
-##        for obstacle in self.obstacles:
-##            self.obstacle_paths.append(plt.path(obstacle))
+    def isOK(self, point):
+        # Check if inside the bounding polygon, inside if
+        insidePolygon = isBlocked(point, [self.bounding_polygon], self.boundingHitBox)
 
-    def isBlocked(self, point):
-        return False
+        # Check if inside an obstacle
+        insideObstacle = isBlocked(point, self.obstacles, self.hitBoxes)
+
+        return insidePolygon and not insideObstacle
+
+
