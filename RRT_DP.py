@@ -25,7 +25,7 @@ class Node():
 
 def RRT(start, goal, theMap):
     # Har fått rätt på 6 av 6 på P3
-    K = 15000
+    K = 17000
     tree = []
     tree.append(start)
     newNode = start
@@ -61,8 +61,9 @@ def RRT(start, goal, theMap):
             if newNode.dist(goal) < 7:
                 if not isObstacleBetween(newNode, goal, theMap.obstacles):
                     finalPath = finalSample(newNode, goal, theMap.v_max, theMap.a_max, theMap.dt)
-                    if np.linalg.norm(goal.vel - finalPath[len(finalPath)-1].vel) > errorMargin:
-                        #print("hastigheten är fel, moving on")
+                    # Detta kanske ska göras i finalSample
+                    if np.linalg.norm(goal.vel - finalPath[len(finalPath)-1].vel) > errorMargin or \
+                                    finalPath[len(finalPath)-1].dist(goal) > errorMargin:
                         for node in finalPath:
                             node.children.clear()
                         continue
@@ -80,10 +81,10 @@ def RRT(start, goal, theMap):
                         return tree, path
                 else:
                     continue
-        print(k)
+        #print(k)
 
     print("k: " + str(k))
-    return tree  # , sampledPoint
+    return tree, []  # , sampledPoint
     #
 
 def nearestNeighbor(randNode, tree):
@@ -152,7 +153,6 @@ def finalSample(node, goal, vMax, aMax, dt):
         lastNode = lastPath[len(lastPath)-1]
         lastStep = Node(lastNode.x + lastNode.vel[0]*dt, lastNode.y + lastNode.vel[1]*dt, lastNode.vel)
         if lastStep.dist(goal) > distance:
-            print("FAILIURE")
             break
         lastNode.children.append(lastStep)
         lastPath.append(lastStep)
@@ -226,7 +226,7 @@ def main(filePath):
     start = Node(theMap.start[0], theMap.start[1], theMap.vel_start)
     goal = Node(theMap.goal[0], theMap.goal[1], theMap.vel_goal)
 
-    tree, path = RRT(start, goal, theMap)
+    tree, path = RRT(goal, start, theMap)
 
     plotMap(theMap.bounding_polygon, theMap.obstacles)
     plotTree(tree[0])
@@ -244,4 +244,4 @@ def main(filePath):
 
 
 if __name__ == "__main__":
-    main("P1.json")
+    main("P3.json")
