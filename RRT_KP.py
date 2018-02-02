@@ -32,7 +32,8 @@ def RRT(start, goal, theMap):
     maxSpeed = 0
 
     for k in range(K):
-        if k % 5 == 0:
+        # 10 seems to be best for P3 or 100?
+        if k % 100 == 0:
             randomX = goal.x
             randomY = goal.y
         else:
@@ -62,7 +63,7 @@ def RRT(start, goal, theMap):
             nearestNode.children.append(newNode)
             tree.append(newNode)
 
-        if newNode.dist(goal) < 5:
+        if newNode.dist(goal) < 7:
             if not isObstacleBetween(newNode, goal, theMap.obstacles):
                 print("går in i local")
                 finalPath = finalSample(newNode, goal, theMap.v_max, theMap.dt)
@@ -79,8 +80,9 @@ def RRT(start, goal, theMap):
             print("speed: " + str(maxSpeed))
             # return newNode
             return tree
-        print(k)
         """
+        print(k)
+
     print("k: " + str(k))
     return tree
     #
@@ -136,4 +138,4 @@ def main(filePath):
     plt.show()
 
 if __name__ == "__main__":
-    main("P3.json")
+    main("P2.json")

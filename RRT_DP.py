@@ -2,6 +2,7 @@ import numpy as np
 import math
 from Map2 import Map
 from plotFunctions import *
+from obstacleCheck import isObstacleBetween
 
 
 class Node():
@@ -15,7 +16,7 @@ class Node():
         self.children = [] # only used to plot the graph
         self.distance = 0 # Needed only to keep track of the distance to the "competition" or something
         # Need to keep track of the velocity, part of the state space
-        self.vel = np.array(vel)
+        self.vel = vel
 
 
     def dist(self, otherNode):
@@ -23,21 +24,17 @@ class Node():
         return math.sqrt((otherNode.x - self.x) ** 2 + (otherNode.y - self.y) ** 2)
 
 def RRT(start, goal, theMap):
-
+    # Har fått rätt på 6 av 6 på P3
     K = 15000
     tree = []
     tree.append(start)
     newNode = start
 
-    #Used for curiosity
-    maxSpeed = 0
-
     errorMargin = theMap.dt * theMap.v_max
 
     for k in range(K):
-        #randomX = goal.x
-        #randomY = goal.y
-        if k % 3 == 0:
+        # 3 works for P1, 100 pretty good for P2 and P3
+        if k % 100 == 0:
             randomX = goal.x
             randomY = goal.y
         else:
@@ -57,26 +54,32 @@ def RRT(start, goal, theMap):
 
         if theMap.isOK(newNode):
             newNode.distance = nearestNode.distance + newNode.dist(nearestNode)
-
-            # computes the speed, only for curiosity
-            speed = newNode.dist(nearestNode) / theMap.dt
-            if speed > maxSpeed:
-                maxSpeed = speed
-
             newNode.parent = nearestNode
             nearestNode.children.append(newNode)
             tree.append(newNode)
 
-        if newNode.dist(goal):
-            finalPath = finalSample(newNode, goal)
+            if newNode.dist(goal) < 7:
+                if not isObstacleBetween(newNode, goal, theMap.obstacles):
+                    finalPath = finalSample(newNode, goal, theMap.v_max, theMap.a_max, theMap.dt)
+                    if np.linalg.norm(goal.vel - finalPath[len(finalPath)-1].vel) > errorMargin:
+                        #print("hastigheten är fel, moving on")
+                        for node in finalPath:
+                            node.children.clear()
+                        continue
+                    else:
+                        for node in finalPath:
+                            tree.append(node)
+                            path = makePath(tree[len(tree)-1], start)
+                        print("Constraints hold")
+                        print(checkVelAcc(path, theMap.v_max, theMap.a_max, theMap.dt))
+                        print("The error in distance")
+                        print(tree[len(tree)-1].dist(goal))
+                        print("The error in velocity")
+                        print(np.linalg.norm(tree[len(tree)-1].vel-goal.vel))
 
-
-        if newNode.dist(goal) <= errorMargin:
-            print("breakar")
-            print("k: " + str(k))
-            print("speed: " + str(maxSpeed))
-            # return newNode
-            return tree
+                        return tree, path
+                else:
+                    continue
         print(k)
 
     print("k: " + str(k))
@@ -95,34 +98,125 @@ def nearestNeighbor(randNode, tree):
     #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
     return bestNode
 
-def nextStateDP(nearestNode, randomNode, vMax, aMax, dt):
-    """"Finds the acceleration needed and goes the the node"""
-    # acceleation, a vector with ax and ay
-    ax = 2 * (randomNode.x - nearestNode.x - nearestNode.vel[0] * dt) / (dt ** 2)
-    ay = 2 * (randomNode.y - nearestNode.y - nearestNode.vel[1] * dt) / (dt ** 2)
-    a = np.array([ax, ay])
+def nextStateDP(nodeFrom, nodeTo, vMax, aMax, dt):
+    acc = (nodeTo.XY - nodeFrom.XY - np.multiply(nodeFrom.vel, dt))/dt**2
 
-    # Normalize acceleration so it is not larger than A_MAX
-    if np.linalg.norm(a) > aMax:
-        a /= np.linalg.norm(a) * aMax
+    if np.linalg.norm(acc) > aMax:
+        acc = acc/np.linalg.norm(acc) * aMax
 
-    # Position with the new node with accepted acceleration
-    tempNewx = nearestNode.x + nearestNode.vel[0] * dt + (a[0] * dt ** 2) / 2
-    tempNewy = nearestNode.y + nearestNode.vel[1] * dt + (a[1] * dt ** 2) / 2
+    velocity = nodeFrom.vel + np.multiply(acc, dt)
 
-    velx = (tempNewx - nearestNode.x) / dt
-    vely = (tempNewy - nearestNode.y) / dt
+    if np.linalg.norm(velocity) > vMax:
+        velocity = velocity/np.linalg.norm(velocity) * vMax
 
-    vel = np.array([velx, vely])
-    if np.linalg.norm(vel):
-        vel /= np.linalg.norm(vel) * vMax
+    newNode = Node(nodeFrom.x + velocity[0] * dt, nodeFrom.y + velocity[1] * dt, velocity)
 
-    newx = nearestNode.x + vel[0] * dt
-    newy = nearestNode.y + vel[1] * dt
+    return newNode
 
-    return Node(newx, newy, vel)
+def finalSample(node, goal, vMax, aMax, dt):
+    """The nodes in the goal path has the absolut value of the goal velocity"""
+    margin = vMax * dt
+    startPath = []
+    goalPath = []
 
+    currentNode = node
+    currentGoal = Node(goal.x, goal.y, np.multiply(goal.vel, (-1)))
 
+    while currentGoal.dist(currentNode) > margin * 30: # Vet att den kommer köras när avståndet är max 6
+        goalPath.append(currentGoal)
+        prevGoal = currentGoal
+        currentGoal = nextStateDP(prevGoal, currentNode, np.linalg.norm(goal.vel), aMax, dt)
+        # Needed to plot the tree later, not needed for the final path
+        prevGoal.children.append(currentGoal)
+
+    # Adds the last node to the path, goalPath not needed for the final path only for reference
+    goalPath.append(currentGoal)
+    # Adds the first node to the path, prob don't have to since it is in the tree already
+    #startPath.append(currentNode)
+
+    while currentNode.dist(currentGoal) > margin:
+        prevNode = currentNode
+        currentNode = nextStateDP(currentNode, currentGoal, vMax, aMax, dt)
+        ### Måste ev. kontrollera så denna inte är i ett hinder ###
+        prevNode.children.append(currentNode)
+        currentNode.parent = prevNode
+        startPath.append(currentNode)
+
+    goalPath.reverse()
+
+    lastPath = followCurveMod(startPath[len(startPath)-1], goalPath, vMax, aMax, dt)
+
+    while lastPath[len(lastPath)-1].dist(goal) > margin:
+        # # # kanske ska fortsätta försöka få sista hastigheten här
+        distance = lastPath[len(lastPath)-1].dist(goal)
+        lastNode = lastPath[len(lastPath)-1]
+        lastStep = Node(lastNode.x + lastNode.vel[0]*dt, lastNode.y + lastNode.vel[1]*dt, lastNode.vel)
+        if lastStep.dist(goal) > distance:
+            print("FAILIURE")
+            break
+        lastNode.children.append(lastStep)
+        lastPath.append(lastStep)
+
+    for node in lastPath:
+        # # # Kolla så inte det är dublett av nod där listorna möts
+        startPath.append(node)
+
+    return startPath
+
+def followCurveMod(startNode, curve, vMax, aMax, dt):
+    """Tries to follow both the path and the velocity"""
+    thePath = []
+    thePath.append(startNode)
+    currentNode = startNode
+
+    for step in range(len(curve)):
+        wantVel = np.multiply(curve[step].vel, (-1))
+        velToPos = np.array([(curve[step].x - currentNode.x)/dt, (curve[step].y - currentNode.y )/dt])
+
+        # Prioritizes end velocity, so scales down the velocity to position
+        totVel = wantVel + velToPos * 0.05
+
+        acc = (totVel - currentNode.vel) / dt
+
+        if np.linalg.norm(acc) > aMax:
+            acc /= np.linalg.norm(acc)
+            totVel = currentNode.vel + np.multiply(acc, dt)
+
+        if np.linalg.norm(totVel) > vMax:
+            totVel /= np.linalg.norm(totVel)
+
+        #if np.linalg.norm((totVel - currentNode.vel)/dt) > aMax:
+        #    print("ACCELERATIONEN")
+
+        nextNode = Node(currentNode.x + totVel[0] * dt, currentNode.y + totVel[1] * dt, totVel)
+        currentNode.children.append(nextNode)
+        nextNode.parent = currentNode
+        currentNode = nextNode
+        thePath.append(currentNode)
+
+    return thePath
+
+def makePath(lastNode, startNode):
+    path = []
+    node = lastNode
+    while node != startNode:
+        path.append(node)
+        node = node.parent
+    path.append(node)
+    path.reverse()
+    return path
+
+def checkVelAcc(path, vMax, aMax, dt):
+    for i in range(len(path)-1):
+        node1 = path[1]
+        node2 = path[2]
+        vel = np.linalg.norm((node1.XY - node2.XY)/dt)
+        acc = np.linalg.norm((node1.vel - node2.vel)/dt)
+        if round(vel, 10) > vMax or round(acc, 10) > aMax:
+            print(vel)
+            print(acc)
+            return False
+    return True
 
 def main(filePath):
     theMap = Map(filePath)
@@ -130,10 +224,11 @@ def main(filePath):
     start = Node(theMap.start[0], theMap.start[1], theMap.vel_start)
     goal = Node(theMap.goal[0], theMap.goal[1], theMap.vel_goal)
 
-    tree = RRT(start, goal, theMap)
+    tree, path = RRT(start, goal, theMap)
 
-    plotObstacles(theMap.bounding_polygon, theMap.obstacles)
+    plotMap(theMap.bounding_polygon, theMap.obstacles)
     plotTree(tree[0])
+    plotPath(tree[len(tree)-1])
 
     plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
     plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
@@ -142,4 +237,4 @@ def main(filePath):
 
 
 if __name__ == "__main__":
-    main("P1.json")
+    main("P3.json")
