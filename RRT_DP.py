@@ -220,28 +220,28 @@ def checkVelAcc(path, vMax, aMax, dt):
             return False
     return True
 
-def main(filePath):
+def findPathDP(filePath):
     theMap = Map(filePath)
 
     start = Node(theMap.start[0], theMap.start[1], theMap.vel_start)
     goal = Node(theMap.goal[0], theMap.goal[1], theMap.vel_goal)
 
-    tree, path = RRT(goal, start, theMap)
+    tree, path = RRT(start, goal, theMap)
+    return path
+    #plotMap(theMap.bounding_polygon, theMap.obstacles)
+    #plotTree(tree[0])
+    #plotPath(tree[len(tree)-1])
 
-    plotMap(theMap.bounding_polygon, theMap.obstacles)
-    plotTree(tree[0])
-    plotPath(tree[len(tree)-1])
+    #print("Total distance travelled:")
+    #print(tree[len(tree)-1].distance)
+    #print("Total time:")
+    #print(len(path)* theMap.dt)
 
-    print("Total distance travelled:")
-    print(tree[len(tree)-1].distance)
-    print("Total time:")
-    print(len(path)* theMap.dt)
+    #plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
+    #plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
 
-    plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
-    plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
-
-    plt.show()
+    #plt.show()
 
 
 if __name__ == "__main__":
-    main("P3.json")
+    findPathDP("P3.json")

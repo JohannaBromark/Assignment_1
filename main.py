@@ -2,7 +2,7 @@ import vrep
 import numpy as np
 from queue import PriorityQueue
 
-grid = numpy.full((2, 2), True)
+grid = np.full((2, 2), True)
 V_MAX = 1
 V_GOAL = np.array([0.9, -0.2])
 
