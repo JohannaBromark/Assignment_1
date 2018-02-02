@@ -122,7 +122,8 @@ def finalSample(node, goal, vMax, aMax, dt):
     currentNode = node
     currentGoal = Node(goal.x, goal.y, np.multiply(goal.vel, (-1)))
 
-    while currentGoal.dist(currentNode) > margin * 30: # Vet att den kommer köras när avståndet är max 6
+    # Computes a trajectory from the goal to follow
+    while currentGoal.dist(currentNode) > margin * 30: # Vet att den kommer köras när avståndet är max 7
         goalPath.append(currentGoal)
         prevGoal = currentGoal
         currentGoal = nextStateDP(prevGoal, currentNode, np.linalg.norm(goal.vel), aMax, dt)
@@ -131,13 +132,12 @@ def finalSample(node, goal, vMax, aMax, dt):
 
     # Adds the last node to the path, goalPath not needed for the final path only for reference
     goalPath.append(currentGoal)
-    # Adds the first node to the path, prob don't have to since it is in the tree already
-    #startPath.append(currentNode)
 
     while currentNode.dist(currentGoal) > margin:
         prevNode = currentNode
         currentNode = nextStateDP(currentNode, currentGoal, vMax, aMax, dt)
         ### Måste ev. kontrollera så denna inte är i ett hinder ###
+        currentNode.distance = prevNode.distance + currentNode.dist(prevNode)
         prevNode.children.append(currentNode)
         currentNode.parent = prevNode
         startPath.append(currentNode)
@@ -159,6 +159,8 @@ def finalSample(node, goal, vMax, aMax, dt):
 
     for node in lastPath:
         # # # Kolla så inte det är dublett av nod där listorna möts
+        prevNode = startPath[len(startPath)-1]
+        node.distance = prevNode.distance + node.dist(prevNode)
         startPath.append(node)
 
     return startPath
@@ -230,6 +232,11 @@ def main(filePath):
     plotTree(tree[0])
     plotPath(tree[len(tree)-1])
 
+    print("Total distance travelled:")
+    print(tree[len(tree)-1].distance)
+    print("Total time:")
+    print(len(path)* theMap.dt)
+
     plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
     plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
 
@@ -237,4 +244,4 @@ def main(filePath):
 
 
 if __name__ == "__main__":
-    main("P3.json")
+    main("P1.json")
