@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math
 import Map
 
-from scipy.interpolate import CubicSpline
+#from scipy.interpolate import CubicSpline
 
 # Code for dynamic point
 
@@ -479,7 +479,7 @@ def main():
 
 
     startNode = Node(1, 2, [-0.1, 0.9])
-    goalNode = Node(2, 7, [-0.1, 0.5])
+    goalNode = Node(2, 6, [-0.1, 0.5])
     print(startNode.dist(goalNode))
 
     #newStart, newGoal = extendPoints(startNode, goalNode)
