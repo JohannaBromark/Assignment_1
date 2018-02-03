@@ -40,7 +40,7 @@ def runSimulation():
     #print(errorCode)
     #print(orientation)
 
-    path = findPathDP("P1.json")
+    path = findPathDP("P3.json")
     print(len(path))
     startNode = path[0]
     startVel = startNode.vel
@@ -82,6 +82,8 @@ def runSimulation():
         #posY += 0.005
         currentNode = path[count]
         gamma = velToAng(currentNode.vel)
+        print(currentNode.vel)
+        print(gamma)
         #print(currentNode.x/100)
 
 
@@ -112,8 +114,28 @@ def runSimulation():
 
 def velToAng(vel):
     """Takes a velocity and computes the angle between the vector and the x-axis in degrees"""
-    radians = math.acos(vel[0]/np.linalg.norm(vel))
-    #return round(math.degrees(radians), 5)
+    radians = math.acos(abs(vel[0])/np.linalg.norm(vel))
+    #degrees = round(math.degrees(radians), 5)
+    #print(np.linalg.norm(vel))
+    #print(radians)
+    #print(degrees)
+    if vel[0] < 0 < vel[1]:
+        radians = math.pi - radians
+        #degrees += 90
+    elif vel[1] < 0 < vel[0]:
+        radians = 0 - radians
+        #degrees += 270
+    elif vel[0] < 0 and vel[1] < 0:
+        radians = radians - math.pi
+        #degrees += 180
+    #if vel[0] < 0 or vel[1] < 0:
+    #    radians = -radians
+    #return degrees
     return radians
 
 runSimulation()
+
+#print(velToAng([0.5, 0.5]))
+#print(velToAng([0.5, -0.5]))
+#print(velToAng([-0.5, 0.5]))
+#print(velToAng([-0.5, -0.5]))
