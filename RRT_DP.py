@@ -227,7 +227,7 @@ def findPathDP(filePath):
     goal = Node(theMap.goal[0], theMap.goal[1], theMap.vel_goal)
 
     tree, path = RRT(start, goal, theMap)
-    #return path
+
     plotMap(theMap.bounding_polygon, theMap.obstacles)
     plotTree(tree[0])
     plotPath(tree[len(tree)-1])
@@ -240,7 +240,10 @@ def findPathDP(filePath):
     plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
     plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
 
+
     plt.show()
+    return path
+
 
 
 if __name__ == "__main__":

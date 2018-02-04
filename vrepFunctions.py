@@ -3,7 +3,7 @@ import ctypes
 import vrep as remote_api
 from threading import Lock
 import time
-import pypot
+#import pypot
 
 # Dictopnary with the streaming modes
 vrep_mode = {
@@ -27,7 +27,7 @@ vrep_error = {
 #Dictionary for all the object handles in the scene
 object_handles = {}
 
-MAX_ITER = 5
+MAX_ITER = 10
 lock = Lock()
 # clientID should be from opening the connection
 CLIENTID = 1
@@ -37,40 +37,40 @@ TIMEOUT = 0.4
 
 def add_cube(name, position, sizes, mass):
     """ Add Cube """
-    create_pure_shape(0, 239, sizes, mass, [0, 0])
+    create_pure_shape(0, 8, sizes, mass, [0, 0]) # second argument was 239
+    print("lagt till")
     set_object_position("Cuboid", position)
-    change_object_name("Cuboid", name)
+    #change_object_name("Cuboid", name)
 
 
 def create_pure_shape(primitive_type, options, sizes, mass, precision):
     """ Create Pure Shape"""
     lua_code = "simCreatePureShape({}, {}, {{{}, {}, {}}}, {}, {{{}, {}}})".format(
         primitive_type, options, sizes[0], sizes[1], sizes[2], mass, precision[0], precision[1])
-    print(lua_code)
-
     inject_lua_code(lua_code)
 
 def inject_lua_code(lua_code):
     """ Sends raw lua code and evaluate it without any checking! """
     msg = (ctypes.c_ubyte * len(lua_code)).from_buffer_copy(lua_code.encode())
-    call_remote_api('simxWriteStringStream', 'my_lua_code', msg)
+    #call_remote_api('simxWriteStringStream', 'my_lua_code', msg)
+    print("fel: "+str(remote_api.simxWriteStringStream(CLIENTID, "my_lua_code", msg, remote_api.simx_opmode_blocking)))
+    #remote_api.simxWriteStringStream(CLIENTID, "my_lua_code", "Hello world", remote_api.simx_opmode_oneshot_wait)
 
 
 def set_object_position(object_name, position=[0, 0, 0]):
     """ Sets the object position. """
     h = get_object_handle(object_name)
-    #Prova detta istället
-    lua_code = "simCreatePureShape({}, {}, {{{}, {}, {}}}, {}, {{{}, {}}})".format(
-        primitive_type, options, sizes[0], sizes[1], sizes[2], mass, precision[0], precision[1])
+    h1 = get_object_handle("DefaultCamera")
+    h2 = get_object_handle("bubbleRob")
+    print("h1: ",str(h1))
+    print(h2)
+    print(remote_api.simxGetObjectHandle(CLIENTID, "Cuboid", remote_api.simx_opmode_blocking))
     # alt testa detta direkt
-    vrep.simxSetObjectPosition(clientID, objectHandle, -1, [startNode.x / 10, startNode.y / 10, posZ],
-                               vrep.simx_opmode_oneshot_wait)
+    remote_api.simxSetObjectPosition(CLIENTID, 31, -1, [2, 2, 0.25], remote_api.simx_opmode_oneshot)
 
     print("handle: ")
     print(h)
-    return call_remote_api('simxSetObjectPosition',
-                                h, -1, position,
-                                sending=True)
+    return call_remote_api('simxSetObjectPosition', h, -1, position, sending=True)
 
 def change_object_name(old_name, new_name):
     """ Change object name """
@@ -80,7 +80,6 @@ def change_object_name(old_name, new_name):
         object_handles.pop(old_name)
     lua_code = "simSetObjectName({}, '{}')".format(h, new_name)
     inject_lua_code(lua_code)
-
 
 def get_object_handle(obj):
     """ Gets the vrep object handle. """
@@ -116,7 +115,7 @@ def call_remote_api(func_name, *args, **kwargs):
                                 streaming=True)
     """
 
-    print("hämtar funktionen: "+str(func_name))
+    print("hämtar funktionen: "+str(func_name)+" för"+str(args))
     # Retrieves the given function name
     f = getattr(remote_api, func_name)
 
@@ -149,6 +148,7 @@ def call_remote_api(func_name, *args, **kwargs):
             break
 
         time.sleep(TIMEOUT)
+        print("resultat: "+str(res))
 
     # if any(err) and hard_retry:
     #     print "HARD RETRY"
@@ -221,28 +221,36 @@ class VrepConnectionError(Exception):
 
 
 remote_api.simxFinish(-1)
+
 # Connect to the V-REP continuous server
 CLIENTID = remote_api.simxStart('127.0.0.1', 19997, True, True, 500, 5)
 
 if CLIENTID != -1:  # if we connected successfully
     print('Connected to remote API server')
 
-remote_api.simxSynchronous(CLIENTID, True)
+    remote_api.simxSynchronous(CLIENTID, True)
 
 
 
-dt = 0.1
-remote_api.simxSetFloatingParameter(CLIENTID,
-                              remote_api.sim_floatparam_simulation_time_step,
-                              dt,  # specify a simulation time step
-                              remote_api.simx_opmode_oneshot)
+    dt = 0.1
+    #remote_api.simxSetFloatingParameter(CLIENTID,
+    #                          remote_api.sim_floatparam_simulation_time_step,
+    #                          dt,  # specify a simulation time step
+    #                          remote_api.simx_opmode_oneshot)
+
+    remote_api.simxStartSimulation(CLIENTID, remote_api.simx_opmode_oneshot)
+    add_cube("Kub", [0, 0, 0.025], [1, 1, 1], 5)
 
 
-add_cube("Kub", [0, 0, 0.025], [1, 1, 1], 5)
-#remote_api.simxStartSimulation(CLIENTID, remote_api.simx_opmode_blocking)
+    print(remote_api.simxGetObjectHandle(CLIENTID, "Cuboid", remote_api.simx_opmode_blocking))
 
-#remote_api.simxStopSimulation(CLIENTID,
-#                        remote_api.simx_opmode_blocking)
+    remote_api.simxPauseSimulation(CLIENTID, remote_api.simx_opmode_blocking)
+
+    print("Somnar")
+    time.sleep(5)
+    print("vaknar")
+    remote_api.simxStopSimulation(CLIENTID,
+                        remote_api.simx_opmode_blocking)
 
 # Now close the connection to V-REP:
 remote_api.simxFinish(CLIENTID)
