@@ -227,20 +227,20 @@ def findPathDP(filePath):
     goal = Node(theMap.goal[0], theMap.goal[1], theMap.vel_goal)
 
     tree, path = RRT(start, goal, theMap)
-    return path
-    #plotMap(theMap.bounding_polygon, theMap.obstacles)
-    #plotTree(tree[0])
-    #plotPath(tree[len(tree)-1])
+    #return path
+    plotMap(theMap.bounding_polygon, theMap.obstacles)
+    plotTree(tree[0])
+    plotPath(tree[len(tree)-1])
 
-    #print("Total distance travelled:")
-    #print(tree[len(tree)-1].distance)
-    #print("Total time:")
-    #print(len(path)* theMap.dt)
+    print("Total distance travelled:")
+    print(tree[len(tree)-1].distance)
+    print("Total time:")
+    print(len(path)* theMap.dt)
 
-    #plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
-    #plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
+    plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
+    plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
 
-    #plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":

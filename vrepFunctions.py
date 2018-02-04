@@ -59,6 +59,13 @@ def inject_lua_code(lua_code):
 def set_object_position(object_name, position=[0, 0, 0]):
     """ Sets the object position. """
     h = get_object_handle(object_name)
+    #Prova detta istället
+    lua_code = "simCreatePureShape({}, {}, {{{}, {}, {}}}, {}, {{{}, {}}})".format(
+        primitive_type, options, sizes[0], sizes[1], sizes[2], mass, precision[0], precision[1])
+    # alt testa detta direkt
+    vrep.simxSetObjectPosition(clientID, objectHandle, -1, [startNode.x / 10, startNode.y / 10, posZ],
+                               vrep.simx_opmode_oneshot_wait)
+
     print("handle: ")
     print(h)
     return call_remote_api('simxSetObjectPosition',
@@ -80,11 +87,13 @@ def get_object_handle(obj):
     if obj not in object_handles:
         print(str(obj)+" finns inte i dict")
         object_handles[obj] = vrep_get_object_handle(obj=obj)
-
+        print("OBJECT: ", str(obj))
+        print("handtag: "+ str(object_handles[obj]))
     return object_handles[obj]
 
 
 def vrep_get_object_handle(obj):
+    print("object att hämta: ", str(obj))
     return call_remote_api('simxGetObjectHandle', obj)
 
 
@@ -107,6 +116,7 @@ def call_remote_api(func_name, *args, **kwargs):
                                 streaming=True)
     """
 
+    print("hämtar funktionen: "+str(func_name))
     # Retrieves the given function name
     f = getattr(remote_api, func_name)
 
@@ -176,7 +186,7 @@ def call_remote_api(func_name, *args, **kwargs):
     #                    for i, e in enumerate(err) if e])
     #    raise VrepIOErrors(msg)
 
-    #return res
+    return res
 
 
 def extract_mode(kwargs):
@@ -227,11 +237,12 @@ remote_api.simxSetFloatingParameter(CLIENTID,
                               dt,  # specify a simulation time step
                               remote_api.simx_opmode_oneshot)
 
-remote_api.simxStartSimulation(CLIENTID, remote_api.simx_opmode_blocking)
 
 add_cube("Kub", [0, 0, 0.025], [1, 1, 1], 5)
-remote_api.simxStopSimulation(CLIENTID,
-                        remote_api.simx_opmode_blocking)
+#remote_api.simxStartSimulation(CLIENTID, remote_api.simx_opmode_blocking)
+
+#remote_api.simxStopSimulation(CLIENTID,
+#                        remote_api.simx_opmode_blocking)
 
 # Now close the connection to V-REP:
 remote_api.simxFinish(CLIENTID)
