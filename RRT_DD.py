@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import Map
+import plotFunctions
 
 # Code for differential drive
 
@@ -67,7 +68,7 @@ def findNewNodeDD(nearestNeighbor, randomNode):
 
 def RRT(start, goal, mapp):
 
-    K = 10000
+    K = 20000
     tree = []
     treeAccs = {}
 
@@ -79,31 +80,23 @@ def RRT(start, goal, mapp):
 
     for k in range(K):
         # Bias towards the goal, every fifth k
-        if k % 5 == 0:
+        #print(k)
+
+        if k % 100 == 0:
             randomPos = goal.pos
+            randNode = Node(randomPos, 0, 1)
         else:
-            randomPos = np.multiply(np.random.random(2), np.array([2, 2]))
+            while True:
+                randomPos = np.multiply(np.random.random(2), np.array([mapp.width, mapp.height]))
+                randNode = Node(randomPos, 0, 1)
+                if mapp.isOK(randNode):
+                    break
+            
+        nearestNode = nearestNeighbor(randNode, tree)
 
-        randNode = Node(randomPos, 0, 1)
+        newNode = findNewNodeDD(nearestNode, randNode)
 
-        if mapp.isOK(randNode):
-            nearestNode = nearestNeighbor(randNode, tree)
-
-            #print(randNode.pos)
-            #print(nearestNode.pos)
-
-            ##MAX_EDGE kan nu inte använda max_vel, utan måste använda den faktiska hastigheten som beror på accelerationen.
-            #ratio = MAX_EDGE / nearestNode.dist(randNode)
-            #print(ratio)
-            #print("randNode: ", randNode.pos, randNode.vel)
-            #print("nearestNode: ", nearestNode.pos, nearestNode.vel)
-            newNode = findNewNodeDD(nearestNode, randNode)# Node(nearestNode.x + ratio * (randomX - nearestNode.x),
-                                                          # nearestNode.y + ratio * (randomY - nearestNode.y))
-
-            #print(type(newNode.pos))
-            #print("newNode: ", newNode.pos, newNode.orientation)
-
-            #Plots the tree
+              #Plots the tree
 ##            for i in range(len(tree)-1):
 ##                node = tree[i]
 ##                for child in node.children:
@@ -112,7 +105,9 @@ def RRT(start, goal, mapp):
 ##
 ##            newNode.distance = nearestNode.distance + newNode.dist(nearestNode)
 
-            # computes the speed, only for curiosity
+        # computes the speed, only for curiosity
+
+        if mapp.isOK(newNode):
             speed = newNode.dist(nearestNode)/DT
             if speed > maxSpeed:
                 maxSpeed = speed
@@ -121,8 +116,8 @@ def RRT(start, goal, mapp):
             newNode.parent = nearestNode
             nearestNode.children.append(newNode)
             tree.append(newNode)
-        print(newNode.pos, newNode.orientation)
-        #print(newNode.dist(goal))
+            #print(newNode.pos, np.degrees(newNode.orientation))
+        print(newNode.dist(goal))
 
         #print(TOLERANCE)
         
@@ -134,7 +129,7 @@ def RRT(start, goal, mapp):
             return tree
 
     print("k: "+str(k))
-    return startNode
+    return tree
 
 
 def nearestNeighbor(randNode, tree):
@@ -149,15 +144,12 @@ def nearestNeighbor(randNode, tree):
     #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
     return bestNode
 
-##startNode = Node(np.array([0.1, 0.1]), np.pi / 4, 1)
-##goalNode = Node(np.array([2, 2]), 5 * np.pi / 4, 1)
-
 def findPathDD(mapp):
 
-##    goalNode = Node(np.array(mapp.goal), np.angle(complex(mapp.vel_goal[0], mapp.vel_goal[1])), 0)
-##    startNode = Node(np.array(mapp.start), np.angle(complex(mapp.vel_start[0], mapp.vel_goal[1])), 0)
-    startNode = Node(np.array([0.1, 0.1]), np.pi / 4, 1)
-    goalNode = Node(np.array([2, 2]), 5 * np.pi / 4, 1)  
+    goalNode = Node(np.array(mapp.goal), np.angle(complex(mapp.vel_goal[0], mapp.vel_goal[1])), 0)
+    startNode = Node(np.array(mapp.start), np.angle(complex(mapp.vel_start[0], mapp.vel_goal[1])), 0)
+##    startNode = Node(np.array([0.1, 0.1]), np.pi / 4, 1)
+##    goalNode = Node(np.array([2, 2]), 5 * np.pi / 4, 1)  
     L = mapp.length
     global L
     DT = mapp.dt
@@ -178,10 +170,10 @@ def findPathDD(mapp):
     currentNode = tree[len(tree)-1]
     while not currentNode == startNode:
         #print(str(currentNode.name))
-        path.append(currentNode.name)
+        path.append(currentNode)
         currentNode = currentNode.parent
 
-    path.append(startNode.name)
+    path.append(startNode)
     path.reverse()
 
     #print(path)
@@ -203,6 +195,10 @@ def findPathDD(mapp):
 
     plt.scatter(startNode.pos[0], startNode.pos[1], c = "g")
     plt.scatter(goalNode.pos[0], goalNode.pos[1], c = "r")
+
+    print(len(path) * DT)
+
+    plotFunctions.plotMap(mapp.bounding_polygon, mapp.obstacles)
 
     plt.show()
 
