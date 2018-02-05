@@ -7,6 +7,7 @@ from RRT_DP import findPathDP
 #from RRT_KC import findPathKC
 import time
 from Map import Map
+from commonFunctions import readPath
 
 def writeToFile(obstacles, fileName):
     """The obstacles need to contain the bounding polygon"""
@@ -58,7 +59,7 @@ def velToAng(vel):
 def runSimulation():
 
     # Creates map from json file
-    aMap = Map("P2.json")
+    aMap = Map("P3.json")
     allObstacles = []
 
     # Writes obstacles to file
@@ -68,10 +69,13 @@ def runSimulation():
     writeToFile(allObstacles, "track.txt")
 
     # Plans the path
-    path = findPathKP(aMap) # Kinematic Point
+    #path = findPathKP(aMap) # Kinematic Point
     #path = findPathDP(aMap) # Dynamic Point
     #path = findPathDD(aMap) # Differential Drive
     #path = findPathKC(aMap) # Kinematic Car
+
+    # Reads path from file
+    #path = readPath("DP_P3.txt")
 
     # Initial values
     startNode = path[0]
