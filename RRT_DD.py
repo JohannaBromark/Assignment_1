@@ -3,16 +3,7 @@ import matplotlib.pyplot as plt
 import math
 import Map
 
-
 # Code for differential drive
-
-V_MAX = 1.1
-DT = 0.1
-A_MAX = 1.3
-TOLERANCE = V_MAX * DT #/ 10
-MAX_EDGE = V_MAX * DT# + ((A_MAX*DT)**2)/2
-FILEPATH = "P1.json"
-OMEGA_MAX = 1.3
 
 class Node():
 
@@ -24,6 +15,9 @@ class Node():
         self.distance = 0 # Needed only to keep track of the distance to the "competition" or something
         self.orientation = orientation
         self.omega = omega # Only used for plotting the graph
+        self.x = self.pos[0]
+        self.y = self.pos[1]
+        self.vel = []
 
     def dist(self, otherNode):
         return np.linalg.norm(otherNode.pos - self.pos)
@@ -71,7 +65,7 @@ def findNewNodeDD(nearestNeighbor, randomNode):
 #def ValueBaseTSTS(pos, orientation):
     
 
-def RRT(start, goal):
+def RRT(start, goal, mapp):
 
     K = 10000
     tree = []
@@ -92,7 +86,7 @@ def RRT(start, goal):
 
         randNode = Node(randomPos, 0, 1)
 
-        if not mapp.isBlocked(randNode):
+        if mapp.isOK(randNode):
             nearestNode = nearestNeighbor(randNode, tree)
 
             #print(randNode.pos)
@@ -127,8 +121,10 @@ def RRT(start, goal):
             newNode.parent = nearestNode
             nearestNode.children.append(newNode)
             tree.append(newNode)
-
+        print(newNode.pos, newNode.orientation)
         #print(newNode.dist(goal))
+
+        #print(TOLERANCE)
         
         if newNode.dist(goal) <= TOLERANCE:
             print("breakar")
@@ -153,41 +149,61 @@ def nearestNeighbor(randNode, tree):
     #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
     return bestNode
 
-mapp = Map.Map(FILEPATH)
-startNode = Node(np.array([0.1, 0.1]), np.pi / 4, 1)
-goalNode = Node(np.array([2, 2]), 5 * np.pi / 4, 1)
+##startNode = Node(np.array([0.1, 0.1]), np.pi / 4, 1)
+##goalNode = Node(np.array([2, 2]), 5 * np.pi / 4, 1)
 
-print("TOLERANCE: ", TOLERANCE)
-tree = RRT(startNode, goalNode)
+def findPathDD(mapp):
 
-path = []
-currentNode = tree[len(tree)-1]
-while not currentNode == startNode:
-    #print(str(currentNode.name))
-    path.append(currentNode.name)
-    currentNode = currentNode.parent
+##    goalNode = Node(np.array(mapp.goal), np.angle(complex(mapp.vel_goal[0], mapp.vel_goal[1])), 0)
+##    startNode = Node(np.array(mapp.start), np.angle(complex(mapp.vel_start[0], mapp.vel_goal[1])), 0)
+    startNode = Node(np.array([0.1, 0.1]), np.pi / 4, 1)
+    goalNode = Node(np.array([2, 2]), 5 * np.pi / 4, 1)  
+    L = mapp.length
+    global L
+    DT = mapp.dt
+    global DT
+    OMEGA_MAX = mapp.omega_max
+    global OMEGA_MAX
+    PHI_MAX = mapp.phi_max
+    global PHI_MAX
+    V_MAX = mapp.v_max
+    global V_MAX
+    TOLERANCE = V_MAX * DT
+    global TOLERANCE
+    print(L, DT, OMEGA_MAX, PHI_MAX, V_MAX, TOLERANCE)
 
-path.append(startNode.name)
-path.reverse()
+    tree = RRT(startNode, goalNode, mapp)
 
-#print(path)
+    path = []
+    currentNode = tree[len(tree)-1]
+    while not currentNode == startNode:
+        #print(str(currentNode.name))
+        path.append(currentNode.name)
+        currentNode = currentNode.parent
 
-print("Distance: "+str(tree[len(tree)-1].distance))
+    path.append(startNode.name)
+    path.reverse()
+
+    #print(path)
+
+    print("Distance: "+str(tree[len(tree)-1].distance))
 
 
-#Plots the tree
-for i in range(len(tree)-1):
-    node = tree[i]
-    for child in node.children:
-        time_series = np.linspace(0, DT, 10)
-        x_array = node.pos[0] + (V_MAX / child.omega) * (np.sin(node.orientation + child.omega * time_series) - np.sin(node.orientation))
-        y_array = node.pos[1] - (V_MAX / child.omega) * (np.cos(node.orientation + child.omega * time_series) - np.cos(node.orientation))
-        #print(child.omega)
-        #print(x_array[9], child.pos[0], node.pos[0] + (V_MAX / child.omega) * (np.sin(child.orientation + child.omega * DT) - np.sin(child.orientation)))
-        #print(time_series)
-        plt.plot(x_array, y_array)
+    #Plots the tree
+    for i in range(len(tree)-1):
+        node = tree[i]
+        for child in node.children:
+            time_series = np.linspace(0, DT, 10)
+            x_array = node.pos[0] + (V_MAX / child.omega) * (np.sin(node.orientation + child.omega * time_series) - np.sin(node.orientation))
+            y_array = node.pos[1] - (V_MAX / child.omega) * (np.cos(node.orientation + child.omega * time_series) - np.cos(node.orientation))
+            #print(child.omega)
+            #print(x_array[9], child.pos[0], node.pos[0] + (V_MAX / child.omega) * (np.sin(child.orientation + child.omega * DT) - np.sin(child.orientation)))
+            #print(time_series)
+            plt.plot(x_array, y_array)
 
-plt.scatter(startNode.pos[0], startNode.pos[1], c = "g")
-plt.scatter(goalNode.pos[0], goalNode.pos[1], c = "r")
+    plt.scatter(startNode.pos[0], startNode.pos[1], c = "g")
+    plt.scatter(goalNode.pos[0], goalNode.pos[1], c = "r")
 
-plt.show()
+    plt.show()
+
+    return path
