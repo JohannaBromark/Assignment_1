@@ -63,7 +63,7 @@ def rayCastCheck(node, outsideNode, obstacle):
     # Control so that it is only the corners that the ray potentially intersect that later gets checked
     posIntersectCorners = []
     for i in range(len(obstacle)):
-        if isLinesCrossing(node.XY, outsideNode, obstacle[i], obstacle[(i+1)%len(obstacle)]):
+        if isLinesCrossing(node.pos, outsideNode, obstacle[i], obstacle[(i+1)%len(obstacle)]):
             posIntersectCorners.append(i)
             numIntersect += 1
 
@@ -80,7 +80,7 @@ def rayCastCheck(node, outsideNode, obstacle):
 
     for i in posIntersectCorners:
         corner = obstacle[i]
-        if isCornerOnLine(node.XY, outsideNode, corner):
+        if isCornerOnLine(node.pos, outsideNode, corner):
             numIntersect -=1
 
     return numIntersect%2 != 0
@@ -124,7 +124,7 @@ def getOrientation(node1, node2, node3):
 def isObstacleBetween(node1, node2, obstacles):
     for obstacle in obstacles:
         for i in range(len(obstacle)):
-            if isLinesCrossing(node1.XY, node2.XY, obstacle[i], obstacle[(i+1)%len(obstacle)]):
+            if isLinesCrossing(node1.pos, node2.pos, obstacle[i], obstacle[(i+1)%len(obstacle)]):
                 return True
 
     return False

@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from Map2 import Map
+from Map import Map
 from plotFunctions import *
 from obstacleCheck import isObstacleBetween
 from commonFunctions import *
