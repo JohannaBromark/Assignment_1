@@ -10,7 +10,7 @@ class Node():
     def __init__(self, x, y, vel=np.zeros((1, 2))):
         self.x = x
         self.y = y
-        self.XY = np.array([self.x, self.y])
+        self.pos = np.array([self.x, self.y])
         self.name = str(self.x)+","+str(self.y)
         self.parent = None
         self.children = [] # only used to plot the graph

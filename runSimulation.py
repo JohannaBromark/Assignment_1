@@ -4,7 +4,7 @@ import math
 from RRT_KP import findPathKP
 from RRT_DP import findPathDP
 import time
-from Map2 import Map
+from Map import Map
 
 def writeToFile(obstacles, fileName):
     """The obstacles need to contain the bounding polygon"""
