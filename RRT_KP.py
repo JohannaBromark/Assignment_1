@@ -97,7 +97,7 @@ def nearestNeighbor(randNode, tree):
     return bestNode
 
 def nextStateKP(nearestNode, randomNode, vMax, dt):
-    vel = (randomNode.XY-nearestNode.XY)/dt
+    vel = (randomNode.pos-nearestNode.pos)/dt
     velNorm = np.linalg.norm(vel)
     if velNorm > vMax:
         vel /= velNorm
@@ -137,8 +137,8 @@ def findPathKP(theMap):
     plotTree(tree[0])
     plotPath(path[len(path)-1])
 
-    plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
-    plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
+    plt.plot(start.pos[0], start.pos[1], "o", c = "g" )
+    plt.plot(goal.pos[0], goal.pos[1], "o", c = "r" )
 
     plt.show()
     return path
