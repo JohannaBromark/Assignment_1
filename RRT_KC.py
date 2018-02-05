@@ -26,6 +26,8 @@ class Node():
         self.children = [] # only used to plot the graph
         self.distance = 0 # Needed only to keep track of the distance to the "competition" or something
         self.orientation = orientation
+        self.x = pos[0]
+        self.y = pos[1]
 
 
     def dist(self, otherNode):
@@ -135,7 +137,7 @@ def RRT(start, goal):
 
         randNode = Node(randomPos, 0)
 
-        if not mapp.isBlocked(randNode):
+        if mapp.isOK(randNode):
             nearestNode = nearestNeighbor(randNode, tree)
 
             #print(randNode.pos)
@@ -173,7 +175,7 @@ def RRT(start, goal):
 
         #print(newNode.dist(goal))
         
-        if newNode.dist(goal) <= LOCAL_PLANNER_TOLERANCE:
+        if newNode.dist(goal) <= TOLERANCE:
             print("breakar")
             print("k: " + str(k))
             print("speed: "+str(maxSpeed))
@@ -203,7 +205,7 @@ goalNode = Node(np.array([10, 10]), 5 * np.pi / 4)
 
 print("TOLERANCE: ", TOLERANCE)
 nn, tree = RRT(startNode, goalNode)
-tree = localPlannerKC(nn, tree)
+#tree = localPlannerKC(nn, tree)
 
 path = []
 currentNode = tree[len(tree)-1]

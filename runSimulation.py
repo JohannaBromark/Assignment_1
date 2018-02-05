@@ -3,6 +3,8 @@ import numpy as np
 import math
 from RRT_KP import findPathKP
 from RRT_DP import findPathDP
+from RRT_DD import findPathDD
+from RRT_KC import findPathKC
 import time
 from Map2 import Map
 
@@ -67,7 +69,9 @@ def runSimulation():
 
     # Plans the path
     #path = findPathKP(aMap) # Kinematic Point
-    path = findPathDP(aMap) # Dynamic Point
+    #path = findPathDP(aMap) # Dynamic Point
+    path = findPathDD(aMap) # Differential Drive
+    #path = findPathKC(aMap) # Kinematic Car
 
     # Initial values
     startNode = path[0]
