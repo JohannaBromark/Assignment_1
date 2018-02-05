@@ -7,7 +7,50 @@ from Map2 import Map
 
 ## Orientation: need only change gamma
 
+def writeToFile(obstacles, fileName):
+    """The obstacles need to contain the bounding polygon"""
+    file = open(fileName, "w")
+    numObs = len(obstacles)
+    file.write(str(numObs)+"\n")
+    for obstacle in obstacles:
+        numCorners = len(obstacle)
+        file.write(str(numCorners)+"\n")
+        for i in range(len(obstacle)):
+            point1 = obstacle[i]
+            point2 = obstacle[(i+1) % len(obstacle)]
+            xy = pointsToPosition(point1, point2)
+            file.write(str(xy[0]/10)+"\n")
+            file.write(str(xy[1]/10)+"\n")
+            file.write(str(pointsToLength(point1, point2)/10)+"\n")
+            file.write(str(pointsToAng(point1, point2))+"\n")
+    file.close()
+
+
+def pointsToAng(point1, point2):
+    gamma = math.atan((point2[1] - point1[1])/(point2[0] - point1[0]))
+    return gamma
+
+def pointsToLength(point1, point2):
+    length = math.sqrt((point2[0]-point1[0])**2 + (point2[1] - point1[1])**2)
+    return length
+
+def pointsToPosition(point1, point2):
+    x = (point2[0]-point1[0]) / 2 + point1[0]
+    y = (point2[1]-point1[1]) / 2 + point1[1]
+    return [x, y]
+
+
+
+
 def runSimulation():
+
+
+    aMap = Map("P3.json")
+    allObstacles = []
+    allObstacles.append(aMap.bounding_polygon)
+    for obstacle in aMap.obstacles:
+        allObstacles.append(obstacle)
+    writeToFile(allObstacles, "track.txt")
 
     # close any open connections
     vrep.simxFinish(-1)
@@ -81,6 +124,7 @@ def runSimulation():
         #posX += 0.005
         #posY += 0.005
         currentNode = path[count]
+        currenNodeName = path[count].name
         gamma = velToAng(currentNode.vel)
         #print(currentNode.vel)
         #print(gamma)
@@ -134,74 +178,10 @@ def velToAng(vel):
     return radians
 
 
-def pointsToAng(point1, point2):
-    gamma = math.atan((point2[1] - point1[1])/(point2[0] - point1[0]))
-    return gamma
-
-def pointsToLength(point1, point2):
-    length = math.sqrt((point2[0]-point1[0])**2 + (point2[1] - point1[1])**2)
-    return length
-
-def pointsToPosition(point1, point2):
-    x = (point2[0]-point1[0]) / 2 + point1[0]
-    y = (point2[1]-point1[1]) / 2 + point1[1]
-    return [x, y]
-
 
 
 runSimulation()
 
-#point1 = [-0.2, -0.2]
-#point2 = [3.3, -0.1]
-#point3 = [3.4, 2.9]
-#point4 = [1.4, 4.9]
-#point5 = [0, 3.5]
-#
-#print(pointsToAng(point1, point2))
-#print(pointsToLength(point1, point2))
-#print(pointsToPosition(point1, point2))
-#print()
-#print(pointsToAng(point2, point3))
-#print(pointsToLength(point2, point3))
-#print(pointsToPosition(point2, point3))
-#print()
-#print(pointsToAng(point3, point4))
-#print(pointsToLength(point3, point4))
-#print(pointsToPosition(point3, point4))
-#print()
-#print(pointsToAng(point4, point5))
-#print(pointsToLength(point4, point5))
-#print(pointsToPosition(point4, point5))
-#print()
-#print(pointsToAng(point5, point1))
-#print(pointsToLength(point5, point1))
-#print(pointsToPosition(point5, point1))
-
-def writeToFile(obstacles, fileName):
-    """The obstacles need to contain the bounding polygon"""
-    file = open(fileName, "w")
-    numObs = len(obstacles)
-    file.write(str(numObs)+"\n")
-    for obstacle in obstacles:
-        numCorners = len(obstacle)
-        file.write(str(numCorners)+"\n")
-        for i in range(len(obstacle)):
-            point1 = obstacle[i]
-            point2 = obstacle[(i+1) % len(obstacle)]
-            xy = pointsToPosition(point1, point2)
-            file.write(str(xy[0]/10)+"\n")
-            file.write(str(xy[1]/10)+"\n")
-            file.write(str(pointsToLength(point1, point2)/10)+"\n")
-            file.write(str(pointsToAng(point1, point2))+"\n")
-    file.close()
-
-aMap = Map("P3.json")
-allObstacles = []
-allObstacles.append(aMap.bounding_polygon)
-for obstacle in aMap.obstacles:
-    allObstacles.append(obstacle)
-
-#writeToFile(allObstacles, "P3.txt")
 
 
 

@@ -3,6 +3,7 @@ import math
 from Map2 import Map
 from plotFunctions import *
 from obstacleCheck import isObstacleBetween
+from commonFunctions import *
 
 class Node():
 
@@ -69,22 +70,20 @@ def RRT(start, goal, theMap):
                 finalPath = finalSample(newNode, goal, theMap.v_max, theMap.dt)
                 for node in finalPath:
                     tree.append(node)
-                return tree
+                path = makePath(tree[len(tree)-1], start)
+                print("Constraints hold")
+                print(checkVel(path, theMap.v_max, theMap.dt))
+                print("The error in distance")
+                print(tree[len(tree)-1].dist(goal))
+                print("The error in velocity")
+                print(np.linalg.norm(tree[len(tree)-1].vel-goal.vel))
+                return tree, path
             else:
                 continue
-        """
-        Old code, not sure if needed
-        if newNode.dist(goal) <= errorMargin:
-            print("breakar")
-            print("k: " + str(k))
-            print("speed: " + str(maxSpeed))
-            # return newNode
-            return tree
-        """
-        print(k)
+        #print(k)
 
     print("k: " + str(k))
-    return tree
+    return tree, []
     #
 
 def nearestNeighbor(randNode, tree):
@@ -96,7 +95,6 @@ def nearestNeighbor(randNode, tree):
         if distance < bestDistance:
             bestDistance = distance
             bestNode = node
-    #Vid hinder, kontrollera om det är hinder ivägen, i sådana fall skrota randNode, returnera null eller nåt?
     return bestNode
 
 def nextStateKP(nearestNode, randomNode, vMax, dt):
@@ -113,29 +111,38 @@ def finalSample(node, goal, vMax, dt):
         newNode = nextStateKP(currentNode, goal, vMax, dt)
         currentNode.children.append(newNode)
         newNode.parent = currentNode
+        newNode.distance = currentNode.distance + newNode.dist(currentNode)
         path.append(newNode)
         currentNode = newNode
     lastNode = Node(goal.x, goal.y, goal.vel)
     path[len(path)-1].children.append(lastNode)
     lastNode.parent = path[len(path)-1]
+    lastNode.distance = lastNode.parent.distance + lastNode.dist(lastNode.parent)
     path.append(lastNode)
     return path
 
-def main(filePath):
-    theMap = Map(filePath)
+def findPathKP(theMap):
+    #theMap = Map(filePath)
 
     start = Node(theMap.start[0], theMap.start[1], theMap.vel_start)
     goal = Node(theMap.goal[0], theMap.goal[1], theMap.vel_goal)
 
-    tree = RRT(start, goal, theMap)
+    tree, path = RRT(start, goal, theMap)
 
-    plotObstacles(theMap.bounding_polygon, theMap.obstacles)
+    print("Total distance travelled:")
+    print(tree[len(tree)-1].distance)
+    print("Total time:")
+    print(len(path)* theMap.dt)
+
+    plotMap(theMap.bounding_polygon, theMap.obstacles)
     plotTree(tree[0])
+    plotPath(path[len(path)-1])
 
     plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
     plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
 
     plt.show()
+    return path
 
 if __name__ == "__main__":
-    main("P2.json")
+    findPathKP(Map("P1.json"))

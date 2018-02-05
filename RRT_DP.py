@@ -220,8 +220,10 @@ def checkVelAcc(path, vMax, aMax, dt):
             return False
     return True
 
-def findPathDP(filePath):
-    theMap = Map(filePath)
+def findPathDP(theMap):
+
+    #theMap = Map(filePath)
+    print()
 
     start = Node(theMap.start[0], theMap.start[1], theMap.vel_start)
     goal = Node(theMap.goal[0], theMap.goal[1], theMap.vel_goal)
