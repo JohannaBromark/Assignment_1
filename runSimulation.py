@@ -6,7 +6,6 @@ from RRT_DP import findPathDP
 import time
 from Map2 import Map
 
-
 def writeToFile(obstacles, fileName):
     """The obstacles need to contain the bounding polygon"""
     file = open(fileName, "w")
@@ -57,7 +56,7 @@ def velToAng(vel):
 def runSimulation():
 
     # Creates map from json file
-    aMap = Map("P1.json")
+    aMap = Map("P2.json")
     allObstacles = []
 
     # Writes obstacles to file
@@ -67,8 +66,8 @@ def runSimulation():
     writeToFile(allObstacles, "track.txt")
 
     # Plans the path
-    path = findPathKP(aMap) # Kinematic Point
-    #path = findPathDP(aMap) # Dynamic Point
+    #path = findPathKP(aMap) # Kinematic Point
+    path = findPathDP(aMap) # Dynamic Point
 
     # Initial values
     startNode = path[0]

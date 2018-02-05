@@ -84,7 +84,6 @@ def RRT(start, goal, theMap):
 
     print("k: " + str(k))
     return tree, []
-    #
 
 def nearestNeighbor(randNode, tree):
     bestNode = tree[0]
