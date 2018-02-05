@@ -75,7 +75,10 @@ def runSimulation():
 
     # Initial values
     startNode = path[0]
-    gamma = velToAng(startNode.vel)
+    if len(startNode.vel) == 0:
+        gamma = startNode.orientation
+    else:
+        gamma = velToAng(startNode.vel)
     posZ = 0.025
 
     # ---------------------- Connects to V-rep
@@ -112,7 +115,10 @@ def runSimulation():
     while count < len(path): # run for 1 simulated second
 
         currentNode = path[count]
-        gamma = velToAng(currentNode.vel)
+        if len(currentNode.vel) == 0:
+            gamma = currentNode.orientation
+        else:
+            gamma = velToAng(currentNode.vel)
 
         _ = vrep.simxSetObjectPosition(clientID, objectHandle, -1, [currentNode.x/10, currentNode.y/10, posZ], vrep.simx_opmode_oneshot)
         _ = vrep.simxSetObjectOrientation(clientID, objectHandle, -1, [0, 0, gamma], vrep.simx_opmode_oneshot)
