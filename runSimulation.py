@@ -6,7 +6,7 @@ from RRT_DP import findPathDP
 from RRT_DD import findPathDD
 from RRT_KC import findPathKC
 import time
-from Map2 import Map
+from Map import Map
 
 def writeToFile(obstacles, fileName):
     """The obstacles need to contain the bounding polygon"""

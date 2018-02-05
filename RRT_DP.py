@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from Map2 import Map
+from Map import Map
 from plotFunctions import *
 from obstacleCheck import isObstacleBetween
 
@@ -10,7 +10,7 @@ class Node():
     def __init__(self, x, y, vel=np.zeros((1, 2))):
         self.x = x
         self.y = y
-        self.XY = np.array([self.x, self.y])
+        self.pos = np.array([self.x, self.y])
         self.name = str(self.x)+","+str(self.y)
         self.parent = None
         self.children = [] # only used to plot the graph
@@ -100,7 +100,7 @@ def nearestNeighbor(randNode, tree):
     return bestNode
 
 def nextStateDP(nodeFrom, nodeTo, vMax, aMax, dt):
-    acc = (nodeTo.XY - nodeFrom.XY - np.multiply(nodeFrom.vel, dt))/dt**2
+    acc = (nodeTo.pos - nodeFrom.pos - np.multiply(nodeFrom.vel, dt))/dt**2
 
     if np.linalg.norm(acc) > aMax:
         acc = acc/np.linalg.norm(acc) * aMax
@@ -212,7 +212,7 @@ def checkVelAcc(path, vMax, aMax, dt):
     for i in range(len(path)-1):
         node1 = path[1]
         node2 = path[2]
-        vel = np.linalg.norm((node1.XY - node2.XY)/dt)
+        vel = np.linalg.norm((node1.pos - node2.pos)/dt)
         acc = np.linalg.norm((node1.vel - node2.vel)/dt)
         if round(vel, 10) > vMax or round(acc, 10) > aMax:
             print(vel)
@@ -239,8 +239,8 @@ def findPathDP(theMap):
     print("Total time:")
     print(len(path)* theMap.dt)
 
-    plt.plot(start.XY[0], start.XY[1], "o", c = "g" )
-    plt.plot(goal.XY[0], goal.XY[1], "o", c = "r" )
+    plt.plot(start.pos[0], start.pos[1], "o", c = "g" )
+    plt.plot(goal.pos[0], goal.pos[1], "o", c = "r" )
 
 
     plt.show()
