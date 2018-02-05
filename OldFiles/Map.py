@@ -5,7 +5,8 @@ from obstacleCheck import *
 class Map():
 
     def __init__(self, file):
-
+        self.width = 60
+        self.height = 60
         
         data = json.load(open(file))
 
@@ -20,19 +21,15 @@ class Map():
         self.hitBoxes = makeBoxes(self.obstacles)
         self.boundingHitBox = [findMaxMin(self.bounding_polygon)]
 
-        # width = maxX - minX, height = maxY - minY
-        self.width = 60 #(self.boundingHitBox[0][1] - self.boundingHitBox[0][0]) * 1.5
-        self.height = 60 #(self.boundingHitBox[0][2] - self.boundingHitBox[0][3]) * 1.5
-
-        self.goal = data["pos_goal"]
-        self.start = data["pos_start"]
-        self.length = data["vehicle_L"]
-        self.a_max = data["vehicle_a_max"]
-        self.dt = data["vehicle_dt"]
-        self.omega_max = data["vehicle_omega_max"]
-        self.phi_max = data["vehicle_phi_max"]
+        self.pos_goal = data["pos_goal"]
+        self.pos_start = data["pos_start"]
+        self.vehicle_L = data["vehicle_L"]
+        self.vehicle_a_max = data["vehicle_a_max"]
+        self.vehicle_dt = data["vehicle_dt"]
+        self.vehicle_omega_max = data["vehicle_omega_max"]
+        self.vehicle_phi_max = data["vehicle_phi_max"]
         self.vehicle_t = data["vehicle_t"]
-        self.v_max = data["vehicle_v_max"]
+        self.vehicle_v_max = data["vehicle_v_max"]
         self.vel_goal = data["vel_goal"]
         self.vel_start = data["vel_start"]
 
