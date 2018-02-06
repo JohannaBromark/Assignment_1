@@ -3,8 +3,8 @@ import numpy as np
 import math
 from RRT_KP import findPathKP
 from RRT_DP import findPathDP
-#from RRT_DD import findPathDD
-#from RRT_KC import findPathKC
+from RRT_DD import findPathDD
+from RRT_KC import findPathKC
 import time
 from Map import Map
 from commonFunctions import readPath
@@ -72,7 +72,7 @@ def runSimulation():
     #path = findPathKP(aMap) # Kinematic Point
     #path = findPathDP(aMap) # Dynamic Point
     #path = findPathDD(aMap) # Differential Drive
-    #path = findPathKC(aMap) # Kinematic Car
+    path = findPathKC(aMap) # Kinematic Car
 
     # Reads path from file
     #path = readPath("DP_P3.txt")
